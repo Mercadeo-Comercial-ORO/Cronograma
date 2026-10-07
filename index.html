@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cronograma ORO</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/oro.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#f6f5f9; --surface:#fff; --surface-2:#efedf4; --line:#dedbe7;
+  --fg:#1d1a2b; --muted:#666178; --accent:#ec6a16; --accent-ink:#fff;
+  --prog:#2f7fd1; --prog-bg:#e4effb; --ok:#1f8a55; --ok-bg:#e3f4ea; --clash:#c62a2a; --clash-bg:#fde8e8;
+  --plate:#fff;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14121d; --surface:#1d1a29; --surface-2:#262236; --line:#36314a;
+  --fg:#efedf6; --muted:#a49fb8; --accent:#ff8a3d; --accent-ink:#1a1206;
+  --prog:#5aa2ee; --prog-bg:#16263a; --ok:#4fcf8c; --ok-bg:#183527; --clash:#ff6b6b; --clash-bg:#3a1919;
+  --plate:#f7f6fb; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14121d; --surface:#1d1a29; --surface-2:#262236; --line:#36314a;
+  --fg:#efedf6; --muted:#a49fb8; --accent:#ff8a3d; --accent-ink:#1a1206;
+  --prog:#5aa2ee; --prog-bg:#16263a; --ok:#4fcf8c; --ok-bg:#183527; --clash:#ff6b6b; --clash-bg:#3a1919;
+  --plate:#f7f6fb; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 16px 48px}
+.ribbon{height:6px;border-radius:6px;background:linear-gradient(90deg,#c62a2a,#ec6a16,#e9c63a,#7fb33a,#3a9ac2,#3b2f86,#a12a6a)}
+.brand{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:14px 0}
+.oro{background:var(--plate);border-radius:12px;padding:7px 11px;display:flex;border:1px solid var(--line)}
+.oro img{height:42px;width:auto}
+.tb{flex:1 1 240px;min-width:0}
+.tb h1{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.01em}
+.tb p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.stations{display:flex;flex-wrap:wrap;gap:6px}
+.st{background:var(--plate);border:1px solid var(--line);border-radius:9px;height:40px;padding:5px 8px;display:flex;align-items:center}
+.st img{height:28px;width:auto}
+
+/* acceso */
+.login{max-width:420px;margin:28px auto 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 22px;display:flex;flex-direction:column;gap:14px}
+.login h2{font-size:22px}
+.login p{margin:0;color:var(--muted)}
+.login label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+.login input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 13px;font-size:16px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:15px}
+.btn:disabled{opacity:.6;cursor:wait}
+.err{color:var(--clash);font-size:14px;min-height:1.2em}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400!important;flex-direction:row!important;color:var(--muted)}
+
+/* cabecera de sesión */
+.sesbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:10px 0 12px;border-bottom:1px solid var(--line)}
+.city{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,5vw,34px);letter-spacing:-.01em}
+.upd{color:var(--muted);font-size:13px}
+.ghost{margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;color:var(--muted);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding-top:12px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip .n{font-family:var(--f-mono);font-weight:500;opacity:.7;margin-left:4px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .v{font-family:var(--f-display);font-size:26px;font-weight:800;line-height:1.15;margin-top:2px}
+.kpi .s{font-size:13px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kpi.alert{border-color:var(--clash);background:var(--clash-bg)}
+.kpi.alert .v{color:var(--clash)}
+
+.views{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.tab{border:1px solid var(--line);background:var(--surface);padding:8px 15px;border-radius:999px;cursor:pointer;font-weight:600}
+.tab[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.views select{margin-left:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* agenda */
+.day{margin-top:18px}
+.dayh{display:flex;align-items:baseline;gap:10px;padding-bottom:6px;border-bottom:2px solid var(--fg)}
+.dayh h3{font-size:18px;font-weight:800}
+.dayh .rel{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.dayh .cnt{margin-left:auto;color:var(--muted);font-size:13px}
+.ev{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;padding:12px 2px;border-bottom:1px solid var(--line);align-items:start}
+.ev .t{font-family:var(--f-mono);font-size:14px;font-weight:500;padding-top:2px}
+.ev .t small{display:block;color:var(--muted);font-size:12px}
+.ev .cl{font-weight:600;font-size:16px}
+.ev .ac{color:var(--muted);font-size:14px}
+.ev .nt{grid-column:2/-1;font-size:13px;background:var(--surface-2);border-radius:8px;padding:6px 9px;margin-top:4px}
+.ev .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.ev.clash{background:linear-gradient(90deg,var(--clash-bg),transparent 70%);border-left:3px solid var(--clash);padding-left:8px}
+.warn{color:var(--clash);font-size:12px;font-weight:600;grid-column:2/-1}
+.pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.pill.prog{background:var(--prog-bg);color:var(--prog)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.ctag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.mini{background:var(--plate);border:1px solid var(--line);border-radius:6px;height:26px;padding:3px 5px;display:inline-flex;align-items:center}
+.mini img{height:18px;width:auto}
+.empty{color:var(--muted);padding:28px 4px;text-align:center}
+
+/* calendario */
+.gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:12px;-webkit-overflow-scrolling:touch}
+.gt{display:grid;min-width:max-content}
+.gt>div{border-bottom:1px solid var(--line);border-right:1px solid var(--line);min-height:44px}
+.lbl{position:sticky;left:0;background:var(--surface);z-index:2;padding:7px 10px;width:200px;font-size:13px}
+.lbl.cityr{background:var(--surface-2);font-family:var(--f-display);font-weight:800;font-size:15px;display:flex;align-items:center}
+.lbl .a{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbl b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd{font-size:11px;text-align:center;color:var(--muted);padding:5px 2px;line-height:1.2}
+.hd b{display:block;color:var(--fg);font-size:13px}
+.hd.we,.c.we{background:var(--surface-2)}
+.hd.today{color:var(--accent)}
+.hd.today b{color:var(--accent)}
+.c{width:54px;padding:4px 3px;display:flex;align-items:center;justify-content:center}
+.c.cityc{background:var(--surface-2);font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.c.cityc.x{color:var(--clash);font-weight:700}
+.bar{width:100%;border-radius:6px;padding:4px 2px;font-family:var(--f-mono);font-size:10.5px;text-align:center;color:#fff;line-height:1.15}
+.bar.prog{background:var(--prog)}
+.bar.ok{background:var(--ok)}
+.bar.clash{background:var(--clash)}
+.foot{margin-top:30px;color:var(--muted);font-size:12px;text-align:center}
+@media (max-width:560px){
+  .ev{grid-template-columns:74px minmax(0,1fr)}
+  .ev .side{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start}
+  .lbl{width:140px}
+  .stations{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ribbon"></div>
+  <header class="brand">
+    <div class="oro"><img src="assets/oro.png" alt="Organización Radial Olímpica"></div>
+    <div class="tb"><h1>Cronograma de activaciones</h1><p>Próximas salidas por ciudad · Mercadeo Comercial</p></div>
+    <div class="stations">
+      <span class="st"><img src="assets/olimpica.png" alt="Olímpica Stereo"></span>
+      <span class="st"><img src="assets/mix.png" alt="Mix Radio"></span>
+      <span class="st"><img src="assets/tiempo.png" alt="Radio Tiempo"></span>
+      <span class="st"><img src="assets/reina.png" alt="La Reina"></span>
+      <span class="st"><img src="assets/atlantico.png" alt="Emisora Atlántico"></span>
+    </div>
+  </header>
+
+  <form class="login" id="login" autocomplete="on">
+    <h2>Ingresa con tu contraseña</h2>
+    <p>Cada ciudad tiene su propia contraseña y solo ve sus actividades.</p>
+    <label>Contraseña<input id="pw" type="password" autocomplete="current-password" required autofocus></label>
+    <label class="chk"><input type="checkbox" id="remember" checked> Recordarme en este dispositivo</label>
+    <button class="btn" id="go" type="submit">Ver cronograma</button>
+    <div class="err" id="err" role="alert"></div>
+  </form>
+
+  <main id="app" hidden>
+    <div class="sesbar">
+      <div><div class="city" id="cityname"></div><div class="upd" id="upd"></div></div>
+      <button class="ghost" id="logout" type="button">Salir</button>
+    </div>
+    <div class="chips" id="chips" hidden></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="views" role="tablist">
+      <button class="tab" role="tab" id="t-agenda" aria-selected="true">Agenda</button>
+      <button class="tab" role="tab" id="t-cal" aria-selected="false">Calendario</button>
+      <select id="win" aria-label="Periodo">
+        <option value="7">Próximos 7 días</option>
+        <option value="14">Próximas 2 semanas</option>
+        <option value="30" selected>Próximo mes</option>
+        <option value="60">Próximos 2 meses</option>
+        <option value="120">Próximos 4 meses</option>
+      </select>
+    </div>
+    <div class="legend"><span><i style="background:var(--prog)"></i>En ejecución</span><span><i style="background:var(--ok)"></i>Ejecutada</span><span><i style="background:var(--clash)"></i>Cruce de horario en la misma ciudad</span></div>
+    <section id="agenda"></section>
+    <section id="cal" hidden></section>
+  </main>
+  <p class="foot">Organización Radial Olímpica · Información de uso interno. Se actualiza todos los días a las 7:00 a. m.</p>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LOGO={"Olímpica":"olimpica","Mix":"mix","Radio Tiempo":"tiempo","La Reina":"reina","Emisora Atlántico":"atlantico"};
+const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const DSEM=["dom","lun","mar","mié","jue","vie","sáb"];
+const DLARGO=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const KEY="oro-cronograma-pw";
+let DATA=null, SES=null, curCity=null, view="agenda";
+
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g,"").toLowerCase();
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function sha(s){ const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
+async function decrypt(blob,pw,iter){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(blob.s),iterations:iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(blob.i)},key,b64(blob.c));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function loadData(){ const r=await fetch("data.json?v="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error("datos"); return r.json(); }
+async function unlock(pw){
+  if(!DATA) DATA=await loadData();
+  const n=norm(pw), id=(await sha(DATA.salt+"|"+n)).slice(0,24), blob=DATA.llaves[id];
+  if(!blob) return null;
+  try{ return await decrypt(blob,n,DATA.iter); }catch(e){ return null; }
+}
+
+const todayStr=()=>{ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const addDays=(s,n)=>{ const [y,m,d]=s.split("-").map(Number); const t=new Date(y,m-1,d+n); return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0"); };
+const dow=s=>{ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d).getDay(); };
+const fcorta=s=>{ const [,m,d]=s.split("-"); return `${DSEM[dow(s)]} ${+d} ${MES[+m-1]}`; };
+const flarga=s=>{ const [,m,d]=s.split("-"); const t=`${DLARGO[dow(s)]} ${+d} de ${MES[+m-1]}`; return t[0].toUpperCase()+t.slice(1); };
+const hr=x=> x.a ? x.a+(x.b?"–"+x.b:"") : "Todo el día";
+const fupd=iso=>{ const d=new Date(iso); if(isNaN(d)) return ""; return `Actualizado el ${d.getDate()} ${MES[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+const mini=e=> LOGO[e] ? `<span class="mini" title="${esc(e)}"><img src="assets/${LOGO[e]}.png" alt="${esc(e)}"></span>` : `<span class="upd">${esc(e)}</span>`;
+const pill=st=> st==="ejecutada" ? '<span class="pill ok">Ejecutada</span>' : '<span class="pill prog">En ejecución</span>';
+
+function citiesMap(){ return SES.tipo==="maestra" ? SES.ciudades : {[SES.ciudad]:SES.items}; }
+/* Aplana a salidas dentro de la ventana, marca cruces por ciudad y día */
+function events(){
+  const hoy=todayStr(), fin=addDays(hoy,+$("#win").value-1), m=citiesMap();
+  const cities = curCity==="__todas" ? Object.keys(m) : [curCity];
+  const ev=[];
+  cities.forEach(c=>(m[c]||[]).forEach(it=>it.salidas.forEach((s,j)=>{ if(s.f>=hoy && s.f<=fin) ev.push({c,it,s,j,clash:false}); })));
+  const by={}; ev.forEach(e=>{ const k=e.c+"|"+e.s.f; (by[k]=by[k]||[]).push(e); });
+  Object.values(by).forEach(list=>{ for(let i=0;i<list.length;i++) for(let k=i+1;k<list.length;k++){
+    const A=list[i],B=list[k]; if(A.it.id===B.it.id) continue;
+    const as=A.s.a||"00:00", ae=A.s.b||"23:59", bs=B.s.a||"00:00", be=B.s.b||"23:59";
+    if(as<be && bs<ae){ A.clash=true; B.clash=true; (A.w=A.w||[]).push(B.it.cliente); (B.w=B.w||[]).push(A.it.cliente); } } });
+  ev.sort((x,y)=> x.s.f.localeCompare(y.s.f) || (x.s.a||"").localeCompare(y.s.a||"") || x.c.localeCompare(y.c,"es"));
+  return {ev,hoy,fin,cities};
+}
+function renderChips(){
+  if(SES.tipo!=="maestra"){ $("#chips").hidden=true; return; }
+  const m=SES.ciudades, hoy=todayStr();
+  const n=c=>(m[c]||[]).reduce((s,it)=>s+it.salidas.filter(x=>x.f>=hoy).length,0);
+  const list=Object.keys(m).sort((a,b)=>a.localeCompare(b,"es"));
+  const tot=list.reduce((s,c)=>s+n(c),0);
+  $("#chips").hidden=false;
+  $("#chips").innerHTML=[["__todas","Todas las ciudades",tot],...list.map(c=>[c,c,n(c)])].map(([k,l,v])=>`<button class="chip" type="button" data-c="${esc(k)}" aria-pressed="${curCity===k}">${esc(l)}<span class="n">${v}</span></button>`).join("");
+}
+function renderKPIs(E){
+  const {ev}=E, acts=new Set(ev.map(e=>e.c+"|"+e.it.id)), nx=ev[0], cl=ev.filter(e=>e.clash).length;
+  const lbl=$("#win").selectedOptions[0].textContent.toLowerCase();
+  $("#kpis").innerHTML=`
+    <div class="kpi"><div class="l">Salidas · ${esc(lbl)}</div><div class="v num">${ev.length}</div><div class="s">${acts.size} actividad${acts.size===1?"":"es"}</div></div>
+    <div class="kpi"><div class="l">Próxima salida</div><div class="v" style="font-size:20px">${nx?esc(fcorta(nx.s.f))+` <span class="num" style="font-size:15px">${esc(hr(nx.s))}</span>`:"—"}</div><div class="s">${nx?esc(nx.it.cliente)+(curCity==="__todas"?" · "+esc(nx.c):""):"Sin salidas programadas"}</div></div>
+    <div class="kpi ${cl?"alert":""}"><div class="l">Cruces de horario</div><div class="v num">${cl}</div><div class="s">${cl?"Revisa las salidas marcadas en rojo":"Sin cruces en el periodo"}</div></div>`;
+}
+function renderAgenda(E){
+  const {ev,hoy}=E;
+  if(!ev.length){ $("#agenda").innerHTML=`<p class="empty">No hay salidas programadas en este periodo.</p>`; return; }
+  const days=[...new Set(ev.map(e=>e.s.f))];
+  $("#agenda").innerHTML=days.map(d=>{
+    const list=ev.filter(e=>e.s.f===d), rel=d===hoy?"Hoy":d===addDays(hoy,1)?"Mañana":"";
+    return `<div class="day"><div class="dayh">${rel?`<span class="rel">${rel}</span>`:""}<h3>${esc(flarga(d))}</h3><span class="cnt">${list.length} salida${list.length===1?"":"s"}</span></div>
+      ${list.map(e=>`<div class="ev ${e.clash?"clash":""}">
+        <div class="t">${esc(e.s.a||"Todo el día")}${e.s.b?`<small>a ${esc(e.s.b)}</small>`:""}</div>
+        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div></div>
+        <div class="side">${mini(e.it.emisora)}${pill(e.it.estado)}</div>
+        ${e.clash?`<div class="warn">⚠ Se cruza en horario con ${esc([...new Set(e.w)].join(", "))}</div>`:""}
+        ${e.it.notas?`<div class="nt"><b>Notas:</b> ${esc(e.it.notas)}</div>`:""}
+      </div>`).join("")}</div>`;
+  }).join("");
+}
+function renderCal(E){
+  const {ev,hoy,fin}=E;
+  if(!ev.length){ $("#cal").innerHTML=`<p class="empty">No hay salidas programadas en este periodo.</p>`; return; }
+  const days=[]; for(let d=hoy; d<=fin; d=addDays(d,1)) days.push(d);
+  const cols=`grid-template-columns:auto repeat(${days.length},auto)`;
+  let h=`<div class="hd lbl" style="font-weight:600;color:var(--muted);display:flex;align-items:end">Ciudad / actividad</div>`+days.map(d=>{ const w=dow(d),[,m,dd]=d.split("-"); return `<div class="hd ${w===0||w===6?"we":""} ${d===hoy?"today":""}">${DSEM[w]}<b>${+dd} ${MES[+m-1]}</b></div>`; }).join("");
+  const cities=[...new Set(ev.map(e=>e.c))].sort((a,b)=>a.localeCompare(b,"es"));
+  cities.forEach(c=>{
+    const ce=ev.filter(e=>e.c===c);
+    h+=`<div class="lbl cityr">${esc(c)}</div>`+days.map(d=>{ const de=ce.filter(e=>e.s.f===d), x=de.some(e=>e.clash), w=dow(d); return `<div class="c cityc ${x?"x":""} ${w===0||w===6?"we":""}">${de.length?de.length+(x?" ⚠":""):""}</div>`; }).join("");
+    const acts=[...new Map(ce.map(e=>[e.it.id,e.it])).values()];
+    acts.forEach(it=>{
+      h+=`<div class="lbl"><b>${esc(it.cliente)}</b><span class="a">${esc(it.nombre)}</span></div>`+days.map(d=>{
+        const de=ce.filter(e=>e.it.id===it.id && e.s.f===d), w=dow(d);
+        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s))}">${esc(e.s.a||"•")}</div>`).join("")}</div>`;
+      }).join("");
+    });
+  });
+  $("#cal").innerHTML=`<div class="gwrap"><div class="gt" style="${cols}">${h}</div></div>`;
+}
+function render(){
+  const E=events();
+  $("#cityname").textContent = curCity==="__todas" ? "Todas las ciudades" : curCity;
+  renderChips(); renderKPIs(E);
+  $("#agenda").hidden = view!=="agenda"; $("#cal").hidden = view!=="cal";
+  $("#t-agenda").setAttribute("aria-selected",view==="agenda"); $("#t-cal").setAttribute("aria-selected",view==="cal");
+  view==="agenda" ? renderAgenda(E) : renderCal(E);
+}
+function enter(ses){
+  SES=ses; curCity = ses.tipo==="maestra" ? "__todas" : ses.ciudad;
+  $("#upd").textContent=fupd(DATA.actualizado);
+  $("#login").hidden=true; $("#app").hidden=false; render();
+}
+$("#login").addEventListener("submit",async ev=>{
+  ev.preventDefault(); const pw=$("#pw").value; if(!pw.trim()) return;
+  $("#go").disabled=true; $("#err").textContent="Verificando…";
+  try{
+    const ses=await unlock(pw);
+    if(!ses){ $("#err").textContent="Contraseña incorrecta. Revisa e intenta de nuevo."; return; }
+    $("#err").textContent="";
+    try{ if($("#remember").checked) localStorage.setItem(KEY,pw); else localStorage.removeItem(KEY); }catch(e){}
+    enter(ses);
+  }catch(e){ $("#err").textContent="No se pudo cargar el cronograma. Revisa tu conexión e intenta de nuevo."; }
+  finally{ $("#go").disabled=false; }
+});
+$("#logout").addEventListener("click",()=>{ try{localStorage.removeItem(KEY);}catch(e){} SES=null; $("#pw").value=""; $("#app").hidden=true; $("#login").hidden=false; $("#pw").focus(); });
+$("#chips").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(b){ curCity=b.dataset.c; render(); } });
+$("#t-agenda").addEventListener("click",()=>{ view="agenda"; render(); });
+$("#t-cal").addEventListener("click",()=>{ view="cal"; render(); });
+$("#win").addEventListener("change",render);
+(async()=>{ let pw=null; try{ pw=localStorage.getItem(KEY); }catch(e){}
+  if(pw){ try{ const ses=await unlock(pw); if(ses) enter(ses); }catch(e){} } })();
+</script>
+</body>
+</html>
