@@ -5,7 +5,7 @@ Uso:
   python3 tools/generar.py --tablero tablero.html --db carpeta_db --claves claves.json --out data.json
 
   --tablero  HTML del tablero "Control de Propuestas ORO" (de él se extrae la lista de propuestas de Canva).
-  --db       carpeta con los documentos exportados del tablero: <db>/estado/*.json y <db>/manuales/*.json
+  --db       carpeta con los documentos exportados del tablero: <db>/estado/*.json, <db>/manuales/*.json y <db>/ejecutivos/*.json
   --claves   JSON {"maestra": "...", "digital": "...", "ciudades": {"Barranquilla": "...", ...}}. NO se guarda en el repositorio.
   --out      archivo de salida (data.json en la raíz del repositorio).
 
@@ -70,6 +70,8 @@ def main():
     p0 = load_p0(a.tablero)
     estado = load_dir(os.path.join(a.db, "estado"))
     manuales = load_dir(os.path.join(a.db, "manuales"))
+    ejecutivos = load_dir(os.path.join(a.db, "ejecutivos"))
+    ex_nombre = lambda i: (ejecutivos.get(i) or {}).get("nombre") or ""
     claves = json.load(open(a.claves, encoding="utf-8"))
 
     base = [{"id": p["id"], "cliente": p.get("cliente", ""), "nombre": p.get("nombre", ""), "emisora": p.get("emisora", "Olímpica"), "manual": False} for p in p0]
@@ -97,6 +99,7 @@ def main():
                 "id": p["id"], "cliente": p["cliente"], "nombre": p["nombre"], "emisora": emisora,
                 "estado": st, "notas": (e.get("notasEjecucion") or "").strip(), "salidas": sal,
                 "digital": bool(e.get("incluyeDigital")) and x.get("digital") is not False,
+                "ejecutivos": [n for n in (ex_nombre(i) for i in (e.get("ejecutivos") or [])) if n],
             })
     for v in por_ciudad.values():
         v.sort(key=lambda it: (it["salidas"][0]["f"], it["salidas"][0]["a"], it["cliente"]))

@@ -96,6 +96,9 @@ button,input,select{font:inherit;color:inherit}
 .ev .t small{display:block;color:var(--muted);font-size:12px}
 .ev .cl{font-weight:600;font-size:16px}
 .ev .ac{color:var(--muted);font-size:14px}
+.ev .exe{font-size:13px;margin-top:3px;color:var(--fg)}
+.ev .exe b,.lbl .x b{font-weight:600;color:var(--muted)}
+.lbl .x{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev .nt{grid-column:2/-1;font-size:13px;background:var(--surface-2);border-radius:8px;padding:6px 9px;margin-top:4px}
 .ev .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .ev.clash{background:linear-gradient(90deg,var(--clash-bg),transparent 70%);border-left:3px solid var(--clash);padding-left:8px}
@@ -223,6 +226,9 @@ const fupd=iso=>{ const d=new Date(iso); if(isNaN(d)) return ""; return `Actuali
 const mini=e=> LOGO[e] ? `<span class="mini" title="${esc(e)}"><img src="assets/${LOGO[e]}.png" alt="${esc(e)}"></span>` : `<span class="upd">${esc(e)}</span>`;
 const pill=st=> st==="ejecutada" ? '<span class="pill ok">Ejecutada</span>' : '<span class="pill prog">En ejecución</span>';
 
+const exArr=it=>Array.isArray(it.ejecutivos)?it.ejecutivos:[];
+const exLbl=it=>exArr(it).length>1?"Ejecutivos":"Ejecutivo";
+const exTxt=it=>exArr(it).length?exArr(it).join(", "):"Sin asignar";
 function citiesMap(){ return SES.ciudades ? SES.ciudades : {[SES.ciudad]:SES.items}; }
 /* Aplana a salidas dentro de la ventana, marca cruces por ciudad y día */
 function events(){
@@ -252,7 +258,7 @@ function renderKPIs(E){
   const lbl=$("#win").selectedOptions[0].textContent.toLowerCase();
   $("#kpis").innerHTML=`
     <div class="kpi"><div class="l">Salidas · ${esc(lbl)}</div><div class="v num">${ev.length}</div><div class="s">${acts.size} actividad${acts.size===1?"":"es"}</div></div>
-    <div class="kpi"><div class="l">Próxima salida</div><div class="v" style="font-size:20px">${nx?esc(fcorta(nx.s.f))+` <span class="num" style="font-size:15px">${esc(hr(nx.s))}</span>`:"—"}</div><div class="s">${nx?esc(nx.it.cliente)+(curCity==="__todas"?" · "+esc(nx.c):""):"Sin salidas programadas"}</div></div>
+    <div class="kpi"><div class="l">Próxima salida</div><div class="v" style="font-size:20px">${nx?esc(fcorta(nx.s.f))+` <span class="num" style="font-size:15px">${esc(hr(nx.s))}</span>`:"—"}</div><div class="s">${nx?esc(nx.it.cliente)+(curCity==="__todas"?" · "+esc(nx.c):"")+" · "+esc(exTxt(nx.it)):"Sin salidas programadas"}</div></div>
     <div class="kpi ${cl?"alert":""}"><div class="l">Cruces de horario</div><div class="v num">${cl}</div><div class="s">${cl?"Revisa las salidas marcadas en rojo":"Sin cruces en el periodo"}</div></div>`;
 }
 function renderAgenda(E){
@@ -264,7 +270,7 @@ function renderAgenda(E){
     return `<div class="day"><div class="dayh">${rel?`<span class="rel">${rel}</span>`:""}<h3>${esc(flarga(d))}</h3><span class="cnt">${list.length} salida${list.length===1?"":"s"}</span></div>
       ${list.map(e=>`<div class="ev ${e.clash?"clash":""}">
         <div class="t">${esc(e.s.a||"Todo el día")}${e.s.b?`<small>a ${esc(e.s.b)}</small>`:""}</div>
-        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div></div>
+        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div><div class="exe"><b>${exLbl(e.it)}:</b> ${esc(exTxt(e.it))}</div></div>
         <div class="side">${mini(e.it.emisora)}${pill(e.it.estado)}</div>
         ${e.clash?`<div class="warn">⚠ Se cruza en horario con ${esc([...new Set(e.w)].join(", "))}</div>`:""}
         ${e.it.notas?`<div class="nt"><b>Notas:</b> ${esc(e.it.notas)}</div>`:""}
@@ -283,9 +289,9 @@ function renderCal(E){
     h+=`<div class="lbl cityr">${esc(c)}</div>`+days.map(d=>{ const de=ce.filter(e=>e.s.f===d), x=de.some(e=>e.clash), w=dow(d); return `<div class="c cityc ${x?"x":""} ${w===0||w===6?"we":""}">${de.length?de.length+(x?" ⚠":""):""}</div>`; }).join("");
     const acts=[...new Map(ce.map(e=>[e.it.id,e.it])).values()];
     acts.forEach(it=>{
-      h+=`<div class="lbl"><b>${esc(it.cliente)}</b><span class="a">${esc(it.nombre)}</span></div>`+days.map(d=>{
+      h+=`<div class="lbl"><b>${esc(it.cliente)}</b><span class="a">${esc(it.nombre)}</span><span class="x"><b>${exLbl(it)}:</b> ${esc(exTxt(it))}</span></div>`+days.map(d=>{
         const de=ce.filter(e=>e.it.id===it.id && e.s.f===d), w=dow(d);
-        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s))}">${esc(e.s.a||"•")}</div>`).join("")}</div>`;
+        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s)+" · "+exTxt(it))}">${esc(e.s.a||"•")}</div>`).join("")}</div>`;
       }).join("");
     });
   });
