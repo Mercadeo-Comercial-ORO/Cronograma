@@ -103,6 +103,10 @@ def main():
     p0.sort(key=lambda p: p["fecha"], reverse=True)
     nuevo_js = json.dumps(p0, ensure_ascii=False)
     out = html[: m.start(2)] + nuevo_js + html[m.end(2):]
+    # El HTML leído del artefacto trae el esqueleto que agrega la publicación; se quita para no duplicarlo.
+    if out.lstrip().lower().startswith("<!doctype") and "<title>Control de Propuestas ORO</title>" in out:
+        out = out[out.index("<title>Control de Propuestas ORO</title>"):]
+        out = re.sub(r"\s*</body>\s*</html>\s*$", "\n", out)
     open(a.out, "w", encoding="utf-8").write(out)
     print(f"Listo: {n_add} propuestas nuevas, {n_ver} versiones nuevas. Total en el tablero: {len(p0)}.")
 
