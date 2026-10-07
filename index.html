@@ -104,6 +104,7 @@ button,input,select{font:inherit;color:inherit}
 .pill.prog{background:var(--prog-bg);color:var(--prog)}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}
 .ctag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.dtag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#2f7fd1;border:1px solid rgba(47,127,209,.45);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 .mini{background:var(--plate);border:1px solid var(--line);border-radius:6px;height:26px;padding:3px 5px;display:inline-flex;align-items:center}
 .mini img{height:18px;width:auto}
 .empty{color:var(--muted);padding:28px 4px;text-align:center}
@@ -222,7 +223,7 @@ const fupd=iso=>{ const d=new Date(iso); if(isNaN(d)) return ""; return `Actuali
 const mini=e=> LOGO[e] ? `<span class="mini" title="${esc(e)}"><img src="assets/${LOGO[e]}.png" alt="${esc(e)}"></span>` : `<span class="upd">${esc(e)}</span>`;
 const pill=st=> st==="ejecutada" ? '<span class="pill ok">Ejecutada</span>' : '<span class="pill prog">En ejecución</span>';
 
-function citiesMap(){ return SES.tipo==="maestra" ? SES.ciudades : {[SES.ciudad]:SES.items}; }
+function citiesMap(){ return SES.ciudades ? SES.ciudades : {[SES.ciudad]:SES.items}; }
 /* Aplana a salidas dentro de la ventana, marca cruces por ciudad y día */
 function events(){
   const hoy=todayStr(), fin=addDays(hoy,+$("#win").value-1), m=citiesMap();
@@ -238,7 +239,7 @@ function events(){
   return {ev,hoy,fin,cities};
 }
 function renderChips(){
-  if(SES.tipo!=="maestra"){ $("#chips").hidden=true; return; }
+  if(!SES.ciudades){ $("#chips").hidden=true; return; }
   const m=SES.ciudades, hoy=todayStr();
   const n=c=>(m[c]||[]).reduce((s,it)=>s+it.salidas.filter(x=>x.f>=hoy).length,0);
   const list=Object.keys(m).sort((a,b)=>a.localeCompare(b,"es"));
@@ -263,7 +264,7 @@ function renderAgenda(E){
     return `<div class="day"><div class="dayh">${rel?`<span class="rel">${rel}</span>`:""}<h3>${esc(flarga(d))}</h3><span class="cnt">${list.length} salida${list.length===1?"":"s"}</span></div>
       ${list.map(e=>`<div class="ev ${e.clash?"clash":""}">
         <div class="t">${esc(e.s.a||"Todo el día")}${e.s.b?`<small>a ${esc(e.s.b)}</small>`:""}</div>
-        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div></div>
+        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div></div>
         <div class="side">${mini(e.it.emisora)}${pill(e.it.estado)}</div>
         ${e.clash?`<div class="warn">⚠ Se cruza en horario con ${esc([...new Set(e.w)].join(", "))}</div>`:""}
         ${e.it.notas?`<div class="nt"><b>Notas:</b> ${esc(e.it.notas)}</div>`:""}
@@ -292,14 +293,14 @@ function renderCal(E){
 }
 function render(){
   const E=events();
-  $("#cityname").textContent = curCity==="__todas" ? "Todas las ciudades" : curCity;
+  $("#cityname").textContent = (SES.tipo==="digital"?"Equipo Digital · ":"") + (curCity==="__todas" ? "Todas las ciudades" : curCity);
   renderChips(); renderKPIs(E);
   $("#agenda").hidden = view!=="agenda"; $("#cal").hidden = view!=="cal";
   $("#t-agenda").setAttribute("aria-selected",view==="agenda"); $("#t-cal").setAttribute("aria-selected",view==="cal");
   view==="agenda" ? renderAgenda(E) : renderCal(E);
 }
 function enter(ses){
-  SES=ses; curCity = ses.tipo==="maestra" ? "__todas" : ses.ciudad;
+  SES=ses; curCity = ses.ciudades ? "__todas" : ses.ciudad;
   $("#upd").textContent=fupd(DATA.actualizado);
   $("#login").hidden=true; $("#app").hidden=false; render();
 }

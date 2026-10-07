@@ -6,7 +6,7 @@ Uso:
 
   --tablero  HTML del tablero "Control de Propuestas ORO" (de él se extrae la lista de propuestas de Canva).
   --db       carpeta con los documentos exportados del tablero: <db>/estado/*.json y <db>/manuales/*.json
-  --claves   JSON {"maestra": "...", "ciudades": {"Barranquilla": "...", ...}}. NO se guarda en el repositorio.
+  --claves   JSON {"maestra": "...", "digital": "...", "ciudades": {"Barranquilla": "...", ...}}. NO se guarda en el repositorio.
   --out      archivo de salida (data.json en la raíz del repositorio).
 
 Solo se publican las salidas de hoy en adelante (hora de Bogotá) de propuestas "en ejecución" o "ejecutadas",
@@ -96,6 +96,7 @@ def main():
             por_ciudad.setdefault(ciudad, []).append({
                 "id": p["id"], "cliente": p["cliente"], "nombre": p["nombre"], "emisora": emisora,
                 "estado": st, "notas": (e.get("notasEjecucion") or "").strip(), "salidas": sal,
+                "digital": bool(e.get("incluyeDigital")) and x.get("digital") is not False,
             })
     for v in por_ciudad.values():
         v.sort(key=lambda it: (it["salidas"][0]["f"], it["salidas"][0]["a"], it["cliente"]))
@@ -106,12 +107,18 @@ def main():
     for ciudad, pw in ciudades_cl.items():
         llaves[key_id(pw)] = encrypt({"tipo": "ciudad", "ciudad": ciudad, "items": por_ciudad.get(ciudad, [])}, pw)
     llaves[key_id(claves["maestra"])] = encrypt({"tipo": "maestra", "ciudades": por_ciudad}, claves["maestra"])
+    # Equipo digital: todas las ciudades, solo actividades en ejecución marcadas con actividades digitales
+    digital = {c: [i for i in v if i["estado"] == "en_ejecucion" and i["digital"]] for c, v in por_ciudad.items()}
+    digital = {c: v for c, v in digital.items() if v}
+    if claves.get("digital"):
+        llaves[key_id(claves["digital"])] = encrypt({"tipo": "digital", "ciudades": digital}, claves["digital"])
     data = {"version": 1, "actualizado": actualizado, "iter": ITER, "salt": INDEX_SALT, "llaves": llaves}
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
 
     sin_clave = sorted(set(por_ciudad) - set(ciudades_cl))
     print(f"Actualizado {actualizado}. Ciudades con actividades: " + ", ".join(f"{c} ({sum(len(i['salidas']) for i in v)} salidas)" for c, v in sorted(por_ciudad.items())))
+    print("Equipo digital: " + (", ".join(f"{c} ({len(v)} actividades)" for c, v in sorted(digital.items())) or "sin actividades digitales en ejecución"))
     if sin_clave:
         print("ATENCIÓN: ciudades con actividades pero sin contraseña (solo visibles con la maestra): " + ", ".join(sin_clave))
 
