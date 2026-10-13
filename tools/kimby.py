@@ -6,7 +6,8 @@ Uso:
 
   --db     carpeta con la base del artefacto "Control Merch Kimby" exportada con ArtifactData (action list, out_dir):
              <db>/config/main.json, <db>/config/salidas.json, <db>/movimientos/*.json,
-             <db>/reportes/<idCoordinador>/salidas/*.json
+             <db>/reportes/<idCoordinador>/salidas/*.json,
+             <db>/supervision/<idSupervisor>/parts/*.json (copia consolidada con los reportes del coordinador general)
   --clave  contraseña del cliente. NO se guarda en el repositorio.
   --out    archivo de salida.
 
@@ -56,15 +57,23 @@ def main():
         movs.append({k: m[k] for k in ("tipo", "ciudad", "origen", "destino", "estado", "items", "fecha", "guia") if k in m})
 
     reps, upd = {}, {}
-    for f in glob.glob(os.path.join(a.db, "reportes", "*", "salidas", "*.json")):
-        sid = os.path.splitext(os.path.basename(f))[0]
-        r = load(f)
+
+    def add(sid, r):
         t = r.get("updatedAt") or 0
         if sid in reps and upd[sid] >= t:
-            continue
+            return
         upd[sid] = t
         reps[sid] = {"city": r.get("city", ""), "date": r.get("date", ""), "pdv": r.get("pdv", ""),
                      "entregado": r.get("entregado") or {}, "ventas": r.get("ventas") or 0}
+
+    # Copia consolidada que el tablero publica para el supervisor: incluye los reportes que el
+    # coordinador general carga desde su propia cuenta (no aparecen en la colección "reportes").
+    for f in glob.glob(os.path.join(a.db, "supervision", "*", "parts", "rep*.json")):
+        for sid, r in (load(f).get("reps") or {}).items():
+            add(sid, r)
+    # Reportes de cada coordinador (si son más recientes, reemplazan a los de la copia consolidada).
+    for f in glob.glob(os.path.join(a.db, "reportes", "*", "salidas", "*.json")):
+        add(os.path.splitext(os.path.basename(f))[0], load(f))
 
     if not cities or not products or not salidas:
         sys.exit("Faltan datos: revisa que existan config/main.json y config/salidas.json en --db.")
