@@ -7,8 +7,8 @@ Uso:
   --tablero  HTML del tablero "Control de Propuestas ORO" (de él se extrae la lista de propuestas de Canva).
   --db       carpeta con los documentos exportados del tablero: <db>/estado/*.json, <db>/manuales/*.json y <db>/ejecutivos/*.json
   --kimby    (opcional) carpeta con la base del tablero "Control Merch Kimby" exportada: <kimby>/config/salidas.json y
-             <kimby>/config/main.json. A las salidas de actividades del cliente Kimby se les agrega PDV, dirección y barrio
-             (cruzando por ciudad y fecha).
+             <kimby>/config/main.json. Las salidas del cliente Kimby (fechas, horario, PDV, dirección y barrio)
+             se toman de ese tablero en lugar del tablero de propuestas.
   --claves   JSON {"maestra": "...", "digital": "...", "ciudades": {"Barranquilla": "...", ...}}. NO se guarda en el repositorio.
   --out      archivo de salida (data.json en la raíz del repositorio).
 
@@ -106,26 +106,54 @@ def main():
                 "ejecutivos": [n for n in (ex_nombre(i) for i in (e.get("ejecutivos") or [])) if n],
             })
     if a.kimby:
+        # Para el cliente Kimby, las salidas (fecha, hora de inicio y cierre, PDV, dirección y barrio) salen del
+        # tablero "Control Merch Kimby", no del tablero de propuestas.
         nk = lambda t: re.sub(r"[^a-z0-9]", "", unicodedata.normalize("NFD", t or "").encode("ascii", "ignore").decode().lower())
-        kmain = load_dir(os.path.join(a.kimby, "config"))
-        cnames = {c["id"]: c.get("name", c["id"]) for c in (kmain.get("main") or {}).get("cities", [])}
-        lugar = {}
-        for ks in (kmain.get("salidas") or {}).get("list", []):
-            info = {k2: (ks.get(k1) or "").strip() for k1, k2 in (("pdv", "p"), ("direccion", "d"), ("barrio", "br"))}
-            info = {k: v for k, v in info.items() if v}
-            if info and ks.get("date"):
-                lugar[(nk(cnames.get(ks.get("city"), ks.get("city"))), ks["date"])] = info
-        n = 0
-        for ciudad, items in por_ciudad.items():
-            for it in items:
-                if "kimby" not in nk(it["cliente"]):
+        kcfg = load_dir(os.path.join(a.kimby, "config"))
+        kcities = (kcfg.get("main") or {}).get("cities", [])
+        klist = (kcfg.get("salidas") or {}).get("list", [])
+        HORA_DESDE, HINI, HFIN = "2026-10-15", "10:00", "12:00"  # horario por defecto del tablero Kimby
+
+        def ksal(cid):
+            out = []
+            for ks in klist:
+                f = ks.get("date", "")
+                if ks.get("city") != cid or f < hoy:
                     continue
-                for s in it["salidas"]:
-                    info = lugar.get((nk(ciudad), s["f"]))
-                    if info:
-                        s.update(info)
-                        n += 1
-        print(f"Kimby: {n} salidas con PDV/dirección/barrio")
+                x = {"f": f, "a": ks.get("horaInicio") or (HINI if f >= HORA_DESDE else ""),
+                     "b": ks.get("horaFin") or (HFIN if f >= HORA_DESDE else "")}
+                for k1, k2 in (("pdv", "p"), ("direccion", "d"), ("barrio", "br")):
+                    if (ks.get(k1) or "").strip():
+                        x[k2] = ks[k1].strip()
+                out.append(x)
+            return sorted(out, key=lambda s: (s["f"], s["a"]))
+
+        plantilla = next((it for v in por_ciudad.values() for it in v if "kimby" in nk(it["cliente"])), None)
+        if plantilla is None:
+            for p in base:
+                if "kimby" in nk(p["cliente"]):
+                    e = estado.get(p["id"]) or {}
+                    st = e.get("estadoEj") or ("ejecutada" if e.get("ejecutada") else "pendiente")
+                    if st != "pendiente":
+                        plantilla = {"id": p["id"], "cliente": p["cliente"], "nombre": p["nombre"],
+                                     "emisora": (not p["manual"] and e.get("emisora")) or p["emisora"], "estado": st,
+                                     "notas": (e.get("notasEjecucion") or "").strip(), "digital": False,
+                                     "ejecutivos": [n for n in (ex_nombre(i) for i in (e.get("ejecutivos") or [])) if n]}
+                        break
+        resumen = []
+        if plantilla is not None:
+            for v in por_ciudad.values():
+                v[:] = [it for it in v if "kimby" not in nk(it["cliente"])]
+            for c in kcities:
+                sal = ksal(c["id"])
+                if not sal:
+                    continue
+                ciudad = next((k for k in list(por_ciudad) + list(claves.get("ciudades", {})) if nk(k) == nk(c.get("name"))), c.get("name"))
+                it = {k: v for k, v in plantilla.items() if k != "salidas"}
+                it["salidas"] = sal
+                por_ciudad.setdefault(ciudad, []).append(it)
+                resumen.append(f"{ciudad} {len(sal)}")
+        print("Kimby (desde el tablero Control Merch Kimby): " + (", ".join(resumen) or "sin salidas próximas"))
     for v in por_ciudad.values():
         v.sort(key=lambda it: (it["salidas"][0]["f"], it["salidas"][0]["a"], it["cliente"]))
 
