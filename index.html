@@ -96,6 +96,7 @@ button,input,select{font:inherit;color:inherit}
 .ev .t small{display:block;color:var(--muted);font-size:12px}
 .ev .cl{font-weight:600;font-size:16px}
 .ev .ac{color:var(--muted);font-size:14px}
+.ev .lug{font-size:14px;margin-top:3px}.ev .lug a{color:inherit;font-weight:600;white-space:nowrap}
 .ev .exe{font-size:13px;margin-top:3px;color:var(--fg)}
 .ev .exe b,.lbl .x b{font-weight:600;color:var(--muted)}
 .lbl .x{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -221,6 +222,9 @@ const addDays=(s,n)=>{ const [y,m,d]=s.split("-").map(Number); const t=new Date(
 const dow=s=>{ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d).getDay(); };
 const fcorta=s=>{ const [,m,d]=s.split("-"); return `${DSEM[dow(s)]} ${+d} ${MES[+m-1]}`; };
 const flarga=s=>{ const [,m,d]=s.split("-"); const t=`${DLARGO[dow(s)]} ${+d} de ${MES[+m-1]}`; return t[0].toUpperCase()+t.slice(1); };
+const lugar=e=>{const s=e.s;if(!s.p&&!s.d&&!s.br)return "";const dir=[s.d,s.br].filter(Boolean).join(", ");
+  const q=encodeURIComponent([s.d,s.br,e.c,"Colombia"].filter(Boolean).join(", "));
+  return `<div class="lug">📍 ${s.p?`<b>${esc(s.p)}</b>`:""}${s.p&&dir?" · ":""}${esc(dir)}${s.d?` · <a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Ver mapa</a>`:""}</div>`;};
 const hr=x=> x.a ? x.a+(x.b?"–"+x.b:"") : "Todo el día";
 const fupd=iso=>{ const d=new Date(iso); if(isNaN(d)) return ""; return `Actualizado el ${d.getDate()} ${MES[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
 const mini=e=> LOGO[e] ? `<span class="mini" title="${esc(e)}"><img src="assets/${LOGO[e]}.png" alt="${esc(e)}"></span>` : `<span class="upd">${esc(e)}</span>`;
@@ -270,7 +274,7 @@ function renderAgenda(E){
     return `<div class="day"><div class="dayh">${rel?`<span class="rel">${rel}</span>`:""}<h3>${esc(flarga(d))}</h3><span class="cnt">${list.length} salida${list.length===1?"":"s"}</span></div>
       ${list.map(e=>`<div class="ev ${e.clash?"clash":""}">
         <div class="t">${esc(e.s.a||"Todo el día")}${e.s.b?`<small>a ${esc(e.s.b)}</small>`:""}</div>
-        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div><div class="exe"><b>${exLbl(e.it)}:</b> ${esc(exTxt(e.it))}</div></div>
+        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div>${lugar(e)}<div class="exe"><b>${exLbl(e.it)}:</b> ${esc(exTxt(e.it))}</div></div>
         <div class="side">${mini(e.it.emisora)}${pill(e.it.estado)}</div>
         ${e.clash?`<div class="warn">⚠ Se cruza en horario con ${esc([...new Set(e.w)].join(", "))}</div>`:""}
         ${e.it.notas?`<div class="nt"><b>Notas:</b> ${esc(e.it.notas)}</div>`:""}
@@ -291,7 +295,7 @@ function renderCal(E){
     acts.forEach(it=>{
       h+=`<div class="lbl"><b>${esc(it.cliente)}</b><span class="a">${esc(it.nombre)}</span><span class="x"><b>${exLbl(it)}:</b> ${esc(exTxt(it))}</span></div>`+days.map(d=>{
         const de=ce.filter(e=>e.it.id===it.id && e.s.f===d), w=dow(d);
-        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s)+" · "+exTxt(it))}">${esc(e.s.a||"•")}</div>`).join("")}</div>`;
+        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s)+(e.s.p||e.s.d?" · "+[e.s.p,e.s.d,e.s.br].filter(Boolean).join(", "):"")+" · "+exTxt(it))}">${esc(e.s.a||"•")}</div>`).join("")}</div>`;
       }).join("");
     });
   });

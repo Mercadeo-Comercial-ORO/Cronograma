@@ -6,6 +6,9 @@ Uso:
 
   --tablero  HTML del tablero "Control de Propuestas ORO" (de él se extrae la lista de propuestas de Canva).
   --db       carpeta con los documentos exportados del tablero: <db>/estado/*.json, <db>/manuales/*.json y <db>/ejecutivos/*.json
+  --kimby    (opcional) carpeta con la base del tablero "Control Merch Kimby" exportada: <kimby>/config/salidas.json y
+             <kimby>/config/main.json. A las salidas de actividades del cliente Kimby se les agrega PDV, dirección y barrio
+             (cruzando por ciudad y fecha).
   --claves   JSON {"maestra": "...", "digital": "...", "ciudades": {"Barranquilla": "...", ...}}. NO se guarda en el repositorio.
   --out      archivo de salida (data.json en la raíz del repositorio).
 
@@ -64,6 +67,7 @@ def main():
     ap.add_argument("--tablero", required=True)
     ap.add_argument("--db", required=True)
     ap.add_argument("--claves", required=True)
+    ap.add_argument("--kimby")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
 
@@ -101,6 +105,27 @@ def main():
                 "digital": bool(e.get("incluyeDigital")) and x.get("digital") is not False,
                 "ejecutivos": [n for n in (ex_nombre(i) for i in (e.get("ejecutivos") or [])) if n],
             })
+    if a.kimby:
+        nk = lambda t: re.sub(r"[^a-z0-9]", "", unicodedata.normalize("NFD", t or "").encode("ascii", "ignore").decode().lower())
+        kmain = load_dir(os.path.join(a.kimby, "config"))
+        cnames = {c["id"]: c.get("name", c["id"]) for c in (kmain.get("main") or {}).get("cities", [])}
+        lugar = {}
+        for ks in (kmain.get("salidas") or {}).get("list", []):
+            info = {k2: (ks.get(k1) or "").strip() for k1, k2 in (("pdv", "p"), ("direccion", "d"), ("barrio", "br"))}
+            info = {k: v for k, v in info.items() if v}
+            if info and ks.get("date"):
+                lugar[(nk(cnames.get(ks.get("city"), ks.get("city"))), ks["date"])] = info
+        n = 0
+        for ciudad, items in por_ciudad.items():
+            for it in items:
+                if "kimby" not in nk(it["cliente"]):
+                    continue
+                for s in it["salidas"]:
+                    info = lugar.get((nk(ciudad), s["f"]))
+                    if info:
+                        s.update(info)
+                        n += 1
+        print(f"Kimby: {n} salidas con PDV/dirección/barrio")
     for v in por_ciudad.values():
         v.sort(key=lambda it: (it["salidas"][0]["f"], it["salidas"][0]["a"], it["cliente"]))
 
