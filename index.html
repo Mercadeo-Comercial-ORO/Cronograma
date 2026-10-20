@@ -126,7 +126,7 @@ button,input,select{font:inherit;color:inherit}
 .hd.we,.c.we{background:var(--surface-2)}
 .hd.today{color:var(--accent)}
 .hd.today b{color:var(--accent)}
-.c{width:54px;padding:4px 3px;display:flex;align-items:center;justify-content:center}
+.c{padding:4px 4px;display:flex;align-items:center;justify-content:center}
 .c.cityc{background:var(--surface-2);font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .c.cityc.x{color:var(--clash);font-weight:700}
 .bar{width:100%;border-radius:6px;padding:4px 2px;font-family:var(--f-mono);font-size:10.5px;text-align:center;color:#fff;line-height:1.15}
@@ -147,7 +147,7 @@ button,input,select{font:inherit;color:inherit}
   <div class="ribbon"></div>
   <header class="brand">
     <div class="oro"><img src="assets/oro.png" alt="Organización Radial Olímpica"></div>
-    <div class="tb"><h1>Cronograma de activaciones</h1><p>Próximas salidas por ciudad · Mercadeo Comercial</p></div>
+    <div class="tb"><h1>Cronograma de activaciones</h1><p>Salidas por ciudad y mes · Mercadeo Comercial</p></div>
     <div class="stations">
       <span class="st"><img src="assets/olimpica.png" alt="Olímpica Stereo"></span>
       <span class="st"><img src="assets/mix.png" alt="Mix Radio"></span>
@@ -176,13 +176,7 @@ button,input,select{font:inherit;color:inherit}
     <div class="views" role="tablist">
       <button class="tab" role="tab" id="t-agenda" aria-selected="true">Agenda</button>
       <button class="tab" role="tab" id="t-cal" aria-selected="false">Calendario</button>
-      <select id="win" aria-label="Periodo">
-        <option value="7">Próximos 7 días</option>
-        <option value="14">Próximas 2 semanas</option>
-        <option value="30" selected>Próximo mes</option>
-        <option value="60">Próximos 2 meses</option>
-        <option value="120">Próximos 4 meses</option>
-      </select>
+      <select id="win" aria-label="Mes"></select>
     </div>
     <div class="legend"><span><i style="background:var(--prog)"></i>En ejecución</span><span><i style="background:var(--ok)"></i>Ejecutada</span><span><i style="background:var(--clash)"></i>Cruce de horario en la misma ciudad</span></div>
     <section id="agenda"></section>
@@ -233,20 +227,36 @@ const pill=st=> st==="ejecutada" ? '<span class="pill ok">Ejecutada</span>' : '<
 const exArr=it=>Array.isArray(it.ejecutivos)?it.ejecutivos:[];
 const exLbl=it=>exArr(it).length>1?"Ejecutivos":"Ejecutivo";
 const exTxt=it=>exArr(it).length?exArr(it).join(", "):"Sin asignar";
+const MESL=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+/* Selector de mes: desde el mes actual hasta el último mes con salidas */
+function fillMeses(){
+  const sel=$("#win"), cur=sel.value, hoy=todayStr(), m=citiesMap();
+  let last=hoy.slice(0,7);
+  Object.values(m).forEach(v=>v.forEach(it=>it.salidas.forEach(s=>{ if(s.f.slice(0,7)>last) last=s.f.slice(0,7); })));
+  const opts=[]; let [y,mm]=hoy.slice(0,7).split("-").map(Number);
+  for(let k=0;k<24;k++){ const v=y+"-"+String(mm).padStart(2,"0"); opts.push(v); if(v>=last) break; mm++; if(mm>12){mm=1;y++;} }
+  sel.innerHTML=opts.map(v=>{ const [yy,m2]=v.split("-"); const n=MESL[+m2-1]; return `<option value="${v}">${n[0].toUpperCase()+n.slice(1)} ${yy}</option>`; }).join("");
+  if(opts.includes(cur)) sel.value=cur;
+}
+function rangoMes(v){
+  const [y,m]=v.split("-").map(Number), ult=new Date(y,m,0).getDate(), hoy=todayStr();
+  const ini=v+"-01", fin=v+"-"+String(ult).padStart(2,"0");
+  return [ini<hoy?hoy:ini, fin];
+}
 function citiesMap(){ return SES.ciudades ? SES.ciudades : {[SES.ciudad]:SES.items}; }
 /* Aplana a salidas dentro de la ventana, marca cruces por ciudad y día */
 function events(){
-  const hoy=todayStr(), fin=addDays(hoy,+$("#win").value-1), m=citiesMap();
+  const hoy=todayStr(), [desde,fin]=rangoMes($("#win").value||hoy.slice(0,7)), m=citiesMap();
   const cities = curCity==="__todas" ? Object.keys(m) : [curCity];
   const ev=[];
-  cities.forEach(c=>(m[c]||[]).forEach(it=>it.salidas.forEach((s,j)=>{ if(s.f>=hoy && s.f<=fin) ev.push({c,it,s,j,clash:false}); })));
+  cities.forEach(c=>(m[c]||[]).forEach(it=>it.salidas.forEach((s,j)=>{ if(s.f>=desde && s.f<=fin) ev.push({c,it,s,j,clash:false}); })));
   const by={}; ev.forEach(e=>{ const k=e.c+"|"+e.s.f; (by[k]=by[k]||[]).push(e); });
   Object.values(by).forEach(list=>{ for(let i=0;i<list.length;i++) for(let k=i+1;k<list.length;k++){
     const A=list[i],B=list[k]; if(A.it.id===B.it.id) continue;
     const as=A.s.a||"00:00", ae=A.s.b||"23:59", bs=B.s.a||"00:00", be=B.s.b||"23:59";
     if(as<be && bs<ae){ A.clash=true; B.clash=true; (A.w=A.w||[]).push(B.it.cliente); (B.w=B.w||[]).push(A.it.cliente); } } });
   ev.sort((x,y)=> x.s.f.localeCompare(y.s.f) || (x.s.a||"").localeCompare(y.s.a||"") || x.c.localeCompare(y.c,"es"));
-  return {ev,hoy,fin,cities};
+  return {ev,hoy,desde,fin,cities};
 }
 function renderChips(){
   if(!SES.ciudades){ $("#chips").hidden=true; return; }
@@ -259,7 +269,7 @@ function renderChips(){
 }
 function renderKPIs(E){
   const {ev}=E, acts=new Set(ev.map(e=>e.c+"|"+e.it.id)), nx=ev[0], cl=ev.filter(e=>e.clash).length;
-  const lbl=$("#win").selectedOptions[0].textContent.toLowerCase();
+  const lbl=($("#win").selectedOptions[0]?.textContent||"").toLowerCase();
   $("#kpis").innerHTML=`
     <div class="kpi"><div class="l">Salidas · ${esc(lbl)}</div><div class="v num">${ev.length}</div><div class="s">${acts.size} actividad${acts.size===1?"":"es"}</div></div>
     <div class="kpi"><div class="l">Próxima salida</div><div class="v" style="font-size:20px">${nx?esc(fcorta(nx.s.f))+` <span class="num" style="font-size:15px">${esc(hr(nx.s))}</span>`:"—"}</div><div class="s">${nx?esc(nx.it.cliente)+(curCity==="__todas"?" · "+esc(nx.c):"")+" · "+esc(exTxt(nx.it)):"Sin salidas programadas"}</div></div>
@@ -282,10 +292,10 @@ function renderAgenda(E){
   }).join("");
 }
 function renderCal(E){
-  const {ev,hoy,fin}=E;
+  const {ev,hoy,desde,fin}=E;
   if(!ev.length){ $("#cal").innerHTML=`<p class="empty">No hay salidas programadas en este periodo.</p>`; return; }
-  const days=[]; for(let d=hoy; d<=fin; d=addDays(d,1)) days.push(d);
-  const cols=`grid-template-columns:auto repeat(${days.length},auto)`;
+  const days=[]; for(let d=desde; d<=fin; d=addDays(d,1)) days.push(d);
+  const cols=`grid-template-columns:200px repeat(${days.length},68px)`;
   let h=`<div class="hd lbl" style="font-weight:600;color:var(--muted);display:flex;align-items:end">Ciudad / actividad</div>`+days.map(d=>{ const w=dow(d),[,m,dd]=d.split("-"); return `<div class="hd ${w===0||w===6?"we":""} ${d===hoy?"today":""}">${DSEM[w]}<b>${+dd} ${MES[+m-1]}</b></div>`; }).join("");
   const cities=[...new Set(ev.map(e=>e.c))].sort((a,b)=>a.localeCompare(b,"es"));
   cities.forEach(c=>{
@@ -295,7 +305,7 @@ function renderCal(E){
     acts.forEach(it=>{
       h+=`<div class="lbl"><b>${esc(it.cliente)}</b><span class="a">${esc(it.nombre)}</span><span class="x"><b>${exLbl(it)}:</b> ${esc(exTxt(it))}</span></div>`+days.map(d=>{
         const de=ce.filter(e=>e.it.id===it.id && e.s.f===d), w=dow(d);
-        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s)+(e.s.p||e.s.d?" · "+[e.s.p,e.s.d,e.s.br].filter(Boolean).join(", "):"")+" · "+exTxt(it))}">${esc(e.s.a||"•")}</div>`).join("")}</div>`;
+        return `<div class="c ${w===0||w===6?"we":""}">${de.map(e=>`<div class="bar ${e.clash?"clash":it.estado==="ejecutada"?"ok":"prog"}" title="${esc(it.cliente+" · "+fcorta(d)+" · "+hr(e.s)+(e.s.p||e.s.d?" · "+[e.s.p,e.s.d,e.s.br].filter(Boolean).join(", "):"")+" · "+exTxt(it))}">${e.s.a?`${esc(e.s.a)}<br>${esc(e.s.b||"")}`:"Todo<br>el día"}</div>`).join("")}</div>`;
       }).join("");
     });
   });
@@ -312,7 +322,7 @@ function render(){
 function enter(ses){
   SES=ses; curCity = ses.ciudades ? "__todas" : ses.ciudad;
   $("#upd").textContent=fupd(DATA.actualizado);
-  $("#login").hidden=true; $("#app").hidden=false; render();
+  $("#login").hidden=true; $("#app").hidden=false; fillMeses(); $("#win").value=$("#win").options[0]?.value||""; render();
 }
 $("#login").addEventListener("submit",async ev=>{
   ev.preventDefault(); const pw=$("#pw").value; if(!pw.trim()) return;
