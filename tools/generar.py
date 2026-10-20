@@ -114,14 +114,23 @@ def main():
         klist = (kcfg.get("salidas") or {}).get("list", [])
         HORA_DESDE, HINI, HFIN = "2026-10-15", "10:00", "12:00"  # horario por defecto del tablero Kimby
 
+        # Horario de respaldo: el que tenga esa fecha en el tablero de propuestas (se sincroniza con tools/sincronizar.py)
+        horas = {}
+        for p in base:
+            if "kimby" in nk(p["cliente"]):
+                for x in (estado.get(p["id"]) or {}).get("ejecuciones") or []:
+                    for s in x.get("salidas", []):
+                        horas[(nk(x.get("ciudad")), s.get("fecha"))] = (s.get("inicio", ""), s.get("fin", ""))
+        knombre = {c["id"]: c.get("name") for c in kcities}
+
         def ksal(cid):
             out = []
             for ks in klist:
                 f = ks.get("date", "")
                 if ks.get("city") != cid or f < hoy:
                     continue
-                x = {"f": f, "a": ks.get("horaInicio") or (HINI if f >= HORA_DESDE else ""),
-                     "b": ks.get("horaFin") or (HFIN if f >= HORA_DESDE else "")}
+                h = horas.get((nk(knombre.get(cid)), f)) or (HINI, HFIN) if f >= HORA_DESDE else horas.get((nk(knombre.get(cid)), f), ("", ""))
+                x = {"f": f, "a": ks.get("horaInicio") or h[0], "b": ks.get("horaFin") or h[1]}
                 for k1, k2 in (("pdv", "p"), ("direccion", "d"), ("barrio", "br")):
                     if (ks.get(k1) or "").strip():
                         x[k2] = ks[k1].strip()
