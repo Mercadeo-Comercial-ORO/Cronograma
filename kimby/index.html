@@ -109,6 +109,7 @@ main{max-width:1120px;margin:0 auto;padding:22px 16px 40px;display:flex;flex-dir
 .res .byc{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:16px}
 .res .byc div{border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
 .res .byc b{display:block;font-family:var(--display);font-stretch:90%;text-transform:uppercase;font-size:14px;margin-bottom:3px}
+.res p.main,.res .col li,.res .byc div{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .res .src{margin-top:14px}
 /* pestañas de ciudad */
 .seg{display:flex;gap:6px;flex-wrap:wrap}
@@ -162,7 +163,7 @@ details.dt .tbl-wrap{border:0;border-radius:0;border-top:1px solid var(--line)}
 <p class="foot-n">Organización Radial Olímpica · Esta página se actualiza cada semana, después de las salidas del fin de semana. <button class="btn sm ghost" id="logout" type="button" hidden>Salir</button></p>
 <script>
 (function(){
-const S={config:null,salidas:[],movs:[],reps:{},resumen:null,cambio:'',at:null,tab:'all'};
+const S={config:null,salidas:[],movs:[],reps:{},resumen:null,cambio:'',at:null,tab:'',detOpen:false};
 const $=s=>document.querySelector(s);
 const TZ='America/Bogota';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -306,47 +307,28 @@ ${R&&R.general?`<section class="sec res" aria-labelledby="h3">
 </section>`:''}
 
 <section class="sec" aria-labelledby="h4">
-  <div class="sec-h"><span class="step">${st()} · Merch</span><h2 id="h4">Merch: lo comprado, lo consumido y si alcanza</h2>
-  <p>Elige una ciudad para ver el detalle por producto. Para el merch disponible se cuenta lo que hay hoy en la ciudad más lo que ya fue despachado y viene en camino.</p></div>
-  <div class="seg" id="tabs" role="group" aria-label="Ciudad"></div>
+  <div class="sec-h"><span class="step">${st()} · Merch</span><h2 id="h4">¿Alcanza el merch para terminar las salidas?</h2>
+  <p>Elige una ciudad. “Disponible” es el merch que hay hoy en la ciudad más el que ya fue despachado y viene en camino.</p></div>
+  <div class="seg" data-tabs role="group" aria-label="Ciudad"></div>
   <div id="merch"></div>
 </section>
 
 <section class="sec" aria-labelledby="h5">
   <div class="sec-h"><span class="step">${st()} · Detalle</span><h2 id="h5">Merch entregado en cada salida</h2>
-  <p>Cada fila es una salida ejecutada. Entre paréntesis, la cantidad prevista por salida en el plan inicial; desde el ${esc(fmtD(S.cambio))} el coordinador puede entregar hasta el doble.</p></div>
-  <div>${D.map(d=>{const done=d.list.filter(s=>S.reps[s.id]);
-    const tot={};ps.forEach(p=>tot[p.id]=0);
-    const rows=done.map(s=>{const r=S.reps[s.id],e=r.entregado||{};let te=0;
-      const tds=ps.map(p=>{const v=num(e[p.id]);tot[p.id]+=v;te+=v;return `<td class="r">${nf.format(v)}</td>`;}).join('');
-      return `<tr><td class="nowrap"><b>${esc(fmtD(s.date))}</b></td><td>${esc(r.pdv||s.pdv||'—')}</td>${tds}<td class="r"><b>${nf.format(te)}</b></td></tr>`;}).join('');
-    const gt=ids.reduce((a,id)=>a+tot[id],0);
-    return `<details class="dt"><summary>${esc(d.c.name)} <span>${d.H} de ${d.N} salidas ejecutadas</span></summary>
-    ${done.length?`<div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Punto de venta</th>${ps.map(p=>`<th class="r">${esc(p.name)}<br><span style="font-weight:500">(${p.base})</span></th>`).join('')}<th class="r">Total</th></tr></thead><tbody>${rows}
-    <tr class="foot"><td colspan="2">Total ${esc(d.c.name)}</td>${ps.map(p=>`<td class="r">${nf.format(tot[p.id])}</td>`).join('')}<td class="r">${nf.format(gt)}</td></tr></tbody></table></div>`
-    :`<p class="mini" style="padding:14px 16px">Aún no hay salidas ejecutadas en esta ciudad.</p>`}</details>`;}).join('')}</div>
+  <p>Cada fila es una salida ejecutada de la ciudad elegida. Entre paréntesis, la cantidad prevista por salida en el plan inicial; desde el ${esc(fmtD(S.cambio))} el coordinador puede entregar hasta el doble.</p></div>
+  <div class="seg" data-tabs role="group" aria-label="Ciudad"></div>
+  <div id="detalle"></div>
 </section>`;
 }
 
-/* ---------- Bloque de merch con selector de ciudad ---------- */
+/* ---------- Merch y detalle de la ciudad elegida ---------- */
 function renderMerch(D){
-  const ps=products();
-  $('#tabs').innerHTML=[{id:'all',name:'Las 4 ciudades'},...D.map(d=>({id:d.c.id,name:d.c.name}))].map(t=>`<button type="button" data-t="${t.id}" aria-pressed="${S.tab===t.id}">${esc(t.name)}</button>`).join('');
-  const sel=S.tab==='all'?D:D.filter(d=>d.c.id===S.tab);
-  const sum=k=>{const o={};ps.forEach(p=>o[p.id]=sel.reduce((a,d)=>a+num(d[k][p.id]),0));return o;};
-  const plan=sum('plan'),dbl=sum('dbl'),cons=sum('cons'),ciu=sum('ciu'),cam=sum('cam'),disp=sum('disp');
-  const tt=o=>ps.reduce((a,p)=>a+num(o[p.id]),0);
-  const N=sel.reduce((a,d)=>a+d.N,0);
-  const nameSel=S.tab==='all'?'las cuatro ciudades':sel[0].c.name;
-  /* A. consumo vs comprado */
-  const cell=(c,pl)=>`<td class="r">${pl?pct1(c/pl*100):'—'}</td>`;
-  const tblA=`<div class="tbl-wrap"><table><thead><tr><th>Producto</th><th class="r">Comprado<br>(plan inicial)</th><th class="r">Si se entrega<br>el doble</th><th class="r">Consumido</th><th class="r">% del plan<br>inicial</th><th class="r">Disponible<br>hoy</th></tr></thead><tbody>
-  ${ps.map(p=>`<tr><td>${esc(p.name)}</td><td class="r">${nf.format(plan[p.id])}</td><td class="r">${nf.format(dbl[p.id])}</td><td class="r"><b>${nf.format(cons[p.id])}</b></td>${cell(cons[p.id],plan[p.id])}<td class="r"><b>${nf.format(disp[p.id])}</b>${cam[p.id]?`<small>${nf.format(ciu[p.id])} en ciudad + ${nf.format(cam[p.id])} en camino</small>`:''}</td></tr>`).join('')}
-  <tr class="foot"><td>Total unidades</td><td class="r">${nf.format(tt(plan))}</td><td class="r">${nf.format(tt(dbl))}</td><td class="r">${nf.format(tt(cons))}</td>${cell(tt(cons),tt(plan))}<td class="r">${nf.format(tt(disp))}</td></tr></tbody></table></div>`;
-  const noteA=`<p class="mini">“Comprado” es el merch que se necesita para las ${nf.format(N)} salidas de ${esc(nameSel)} con las cantidades iniciales por salida. “Si se entrega el doble” es lo que se necesitaría si en todas las salidas se entregara el doble, que es lo máximo permitido desde el ${esc(fmtD(S.cambio))}.</p>`;
-  /* B. proyección */
-  let projHtml;
-  const lineV=(sc,R)=>{
+  const ps=products(),ids=ps.map(p=>p.id);
+  const d=D.find(x=>x.c.id===S.tab)||D[0];
+  const tabs=D.map(x=>`<button type="button" data-t="${x.c.id}" aria-pressed="${x.c.id===d.c.id}">${esc(x.c.name)}</button>`).join('');
+  document.querySelectorAll('[data-tabs]').forEach(el=>el.innerHTML=tabs);
+  const R=d.rest.length;
+  const lineV=(sc)=>{
     if(R===0)return {cls:'ok',t:'Ya se ejecutaron todas las salidas.'};
     if(sc.full)return {cls:'ok',t:`<b>Alcanza</b> para completar las ${R} salidas que faltan.`};
     const lim=sc.lim?` Lo primero que se agota: <b>${esc(sc.lim.name)}</b>.`:'';
@@ -357,31 +339,26 @@ function renderMerch(D){
   const scTbl=(sc,perLbl,dec)=>`<div class="tbl-wrap"><table><thead><tr><th>Producto</th><th class="r c-per">${perLbl}</th><th class="r">Necesario</th><th class="r">Disponible</th><th class="r">Resultado</th></tr></thead><tbody>
     ${sc.rows.map(r=>`<tr><td>${esc(r.p.name)}</td><td class="r c-per">${dec?dec1(r.per):nf.format(r.per)}</td><td class="r">${nf.format(r.need)}</td><td class="r">${nf.format(r.disp)}</td><td class="r">${res(r)}</td></tr>`).join('')}
     <tr class="foot"><td>Total unidades</td><td class="r c-per"></td><td class="r">${nf.format(sc.needT)}</td><td class="r">${nf.format(sc.dispT)}</td><td class="r">${sc.falt?`<span class="bad nowrap">Faltan ${nf.format(sc.falt)}</span>`:'<span class="ok nowrap">Alcanza</span>'}</td></tr></tbody></table></div>`;
-  if(S.tab==='all'){
-    const row=(d,sc)=>{const R=d.rest.length;return `<td>${R===0?'—':sc.full?'<span class="ok"><b>Todas las salidas</b></span>':sc.K===0?'<span class="bad"><b>Ni la próxima</b></span>':`<b>${esc(fmtD(sc.last))}</b><small>${sc.K} de ${R} salidas</small>`}</td><td class="r">${sc.falt?`<span class="bad"><b>${nf.format(sc.falt)}</b></span>`:'<span class="ok">0</span>'}</td>`;};
-    const fa=ps.map(p=>sel.reduce((a,d)=>a+Math.max(0,-d.A.rows.find(r=>r.p.id===p.id).diff),0));
-    const fb=ps.map(p=>sel.reduce((a,d)=>a+Math.max(0,-d.B.rows.find(r=>r.p.id===p.id).diff),0));
-    projHtml=`<div class="tbl-wrap"><table><thead><tr><th rowspan="2">Ciudad</th><th rowspan="2" class="r">Salidas<br>que faltan</th><th colspan="2">A · Si se entrega el doble</th><th colspan="2">B · Si seguimos al ritmo real</th></tr><tr><th>Alcanza hasta</th><th class="r">Unidades que faltan</th><th>Alcanza hasta</th><th class="r">Unidades que faltan</th></tr></thead><tbody>
-      ${sel.map(d=>`<tr><td><b>${esc(d.c.name)}</b></td><td class="r">${d.rest.length}</td>${row(d,d.A)}${row(d,d.B)}</tr>`).join('')}
-      <tr class="foot"><td>Total</td><td class="r">${sel.reduce((a,d)=>a+d.rest.length,0)}</td><td></td><td class="r">${nf.format(sel.reduce((a,d)=>a+d.A.falt,0))}</td><td></td><td class="r">${nf.format(sel.reduce((a,d)=>a+d.B.falt,0))}</td></tr></tbody></table></div>
-      <h3 class="sub-h">Unidades que faltan por producto</h3>
-      <div class="tbl-wrap"><table><thead><tr><th>Producto</th><th class="r">A · Si se entrega el doble</th><th class="r">B · Si seguimos al ritmo real</th></tr></thead><tbody>
-      ${ps.map((p,i)=>`<tr><td>${esc(p.name)}</td><td class="r">${fa[i]?`<span class="bad"><b>${nf.format(fa[i])}</b></span>`:'<span class="ok">0</span>'}</td><td class="r">${fb[i]?`<span class="bad"><b>${nf.format(fb[i])}</b></span>`:'<span class="ok">0</span>'}</td></tr>`).join('')}
-      <tr class="foot"><td>Total unidades</td><td class="r">${nf.format(fa.reduce((a,v)=>a+v,0))}</td><td class="r">${nf.format(fb.reduce((a,v)=>a+v,0))}</td></tr></tbody></table></div>
-      <p class="mini">Cada ciudad se calcula por separado con lo que tiene disponible (en la ciudad y en camino); las unidades que faltan son lo que cada ciudad todavía necesitaría recibir para terminar sus salidas. Elige una ciudad para ver el detalle.</p>`;
-  }else{
-    const d=sel[0],R=d.rest.length,vA=lineV(d.A,R),vB=lineV(d.B,R);
-    projHtml=`<div class="scen">
-      <div><span class="tag">Escenario A</span><h3>Si en todas las salidas que faltan se entrega el doble</h3>
-        <p class="mini">Se calcula con el máximo permitido por salida (el doble del plan inicial) en las ${R} salidas que faltan.</p>
-        <div class="verdict ${vA.cls}">${vA.t}</div>${scTbl(d.A,'Por salida',false)}</div>
-      <div><span class="tag">Escenario B</span><h3>Si seguimos entregando al ritmo real de ${esc(d.c.name)}</h3>
-        <p class="mini">Se calcula con el promedio entregado por salida ${d.usaPost?`desde el ${esc(fmtD(S.cambio))} (${d.nBase} salidas)`:`en las ${d.nBase} salidas ejecutadas`}, en las ${R} salidas que faltan.</p>
-        <div class="verdict ${vB.cls}">${vB.t}</div>${scTbl(d.B,'Promedio por salida',true)}</div>
-    </div>`;
-  }
-  $('#merch').innerHTML=`<h3 class="sub-h">Lo comprado frente a lo consumido · ${esc(nameSel)}</h3>${noteA}<p class="hint-scroll">Desliza la tabla hacia los lados para ver todas las columnas →</p>${tblA}
-    <h3 class="sub-h" style="margin-top:22px">¿Alcanza el merch para terminar las salidas? · ${esc(nameSel)}</h3>${projHtml}`;
+  const vA=lineV(d.A),vB=lineV(d.B);
+  $('#merch').innerHTML=`<div class="scen">
+    <div><span class="tag">Escenario A</span><h3>Si en todas las salidas que faltan se entrega el doble</h3>
+      <p class="mini">Se calcula con el máximo permitido por salida (el doble del plan inicial) en las ${R} salidas que faltan.</p>
+      <div class="verdict ${vA.cls}">${vA.t}</div>${scTbl(d.A,'Por salida',false)}</div>
+    <div><span class="tag">Escenario B</span><h3>Si seguimos entregando al ritmo real de ${esc(d.c.name)}</h3>
+      <p class="mini">Se calcula con el promedio entregado por salida ${d.usaPost?`desde el ${esc(fmtD(S.cambio))} (${d.nBase} salidas)`:`en las ${d.nBase} salidas ejecutadas`}, en las ${R} salidas que faltan.</p>
+      <div class="verdict ${vB.cls}">${vB.t}</div>${scTbl(d.B,'Promedio por salida',true)}</div>
+  </div>`;
+  /* Detalle: solo la ciudad elegida */
+  const done=d.list.filter(s=>S.reps[s.id]);
+  const tot={};ps.forEach(p=>tot[p.id]=0);
+  const rows=done.map(s=>{const r=S.reps[s.id],e=r.entregado||{};let te=0;
+    const tds=ps.map(p=>{const v=num(e[p.id]);tot[p.id]+=v;te+=v;return `<td class="r">${nf.format(v)}</td>`;}).join('');
+    return `<tr><td class="nowrap"><b>${esc(fmtD(s.date))}</b></td><td>${esc(r.pdv||s.pdv||'—')}</td>${tds}<td class="r"><b>${nf.format(te)}</b></td></tr>`;}).join('');
+  const gt=ids.reduce((a,id)=>a+tot[id],0);
+  $('#detalle').innerHTML=`<details class="dt"${S.detOpen?' open':''}><summary>${esc(d.c.name)} <span>${d.H} de ${d.N} salidas ejecutadas</span></summary>
+    ${done.length?`<div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Punto de venta</th>${ps.map(p=>`<th class="r">${esc(p.name)}<br><span style="font-weight:500">(${p.base})</span></th>`).join('')}<th class="r">Total</th></tr></thead><tbody>${rows}
+    <tr class="foot"><td colspan="2">Total ${esc(d.c.name)}</td>${ps.map(p=>`<td class="r">${nf.format(tot[p.id])}</td>`).join('')}<td class="r">${nf.format(gt)}</td></tr></tbody></table></div>`
+    :`<p class="mini" style="padding:14px 16px">Aún no hay salidas ejecutadas en esta ciudad.</p>`}</details>`;
 }
 
 const KEY='kimby-landing-pw';
@@ -396,8 +373,9 @@ async function decrypt(pw){
 function show(d){
   Object.assign(S,{config:d.config,salidas:d.salidas||[],movs:d.movs||[],reps:d.reps||{},resumen:d.resumen||null,cambio:d.cambio||'2026-10-16',at:d.at});
   $('#login').hidden=true;const v=$('#view');v.hidden=false;v.innerHTML=viewKimby();$('#logout').hidden=false;
-  const D=cities().map(cityData);renderMerch(D);
-  $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;S.tab=b.dataset.t;renderMerch(D);});
+  const D=cities().map(cityData);S.tab=D[0].c.id;S.detOpen=false;renderMerch(D);
+  v.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;S.tab=b.dataset.t;renderMerch(D);});
+  v.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.dt'))S.detOpen=e.target.open;},true);
 }
 async function tryPw(pw,quiet){
   try{const d=await decrypt(pw);show(d);return true;}
