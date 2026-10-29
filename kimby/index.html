@@ -329,7 +329,7 @@ ${R&&R.general?`<section class="sec res" aria-labelledby="h3">
     </div>`:''}
     ${R.ciudades?`<div class="byc">${D.filter(d=>R.ciudades[d.c.id]).map(d=>`<div><b>${esc(d.c.name)}</b>${esc(R.ciudades[d.c.id])}</div>`).join('')}</div>`:''}
     ${R.comentarios&&(R.comentarios.duenos?.length||R.comentarios.clientes?.length)?`<div class="cmt"><h4>Comentarios clave</h4>
-      ${[['duenos','De los dueños de las tiendas'],['clientes','De los clientes que compraron el producto']].map(([k,t])=>R.comentarios[k]?.length?`<div class="tbl-wrap"><table><thead><tr><th>Ciudad</th><th>${t}</th></tr></thead><tbody>${R.comentarios[k].map(x=>`<tr><td class="nowrap"><b>${esc(cname(x.c))}</b></td><td>${esc(x.t)}</td></tr>`).join('')}</tbody></table></div>`:'').join('')}
+      ${[['duenos','De los dueños de las tiendas'],['clientes','De los clientes que compraron el producto']].map(([k,t])=>R.comentarios[k]?.length?`<div class="tbl-wrap"><table><thead><tr><th>Ciudad</th><th>${t}</th></tr></thead><tbody>${[...new Set(R.comentarios[k].map(x=>x.c))].map(c=>`<tr><td class="nowrap"><b>${esc(cname(c))}</b></td><td>${R.comentarios[k].filter(x=>x.c===c).map(x=>esc(x.t)).join(' ')}</td></tr>`).join('')}</tbody></table></div>`:'').join('')}
       <p class="mini">Comentarios recogidos por los coordinadores de ORO en sus informes de cierre.</p></div>`:''}
     <p class="mini src">Basado en los informes de ${nf.format(T.H)} salidas ejecutadas.</p>
   </div>
@@ -351,7 +351,7 @@ ${R&&R.general?`<section class="sec res" aria-labelledby="h3">
 }
 
 /* Recomendación entre ciudades (escenario B: ritmo real de cada ciudad) */
-function recoHtml(D,ps){
+function recoHtml(D,ps,sel){
   const give=[],left=[];
   ps.forEach(p=>{
     const row=d=>d.B.rows.find(r=>r.p.id===p.id);
@@ -361,17 +361,17 @@ function recoHtml(D,ps){
       if(f>0)left.push({to:r.d.c.name,p:p.name.toLowerCase(),q:f});}
   });
   const lst=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];
-  const tos=[...new Set(give.map(g=>g.to))];
-  let txt;
-  if(!give.length&&!left.length)txt='Si cada ciudad sigue entregando al ritmo que lleva, ninguna se queda corta de merch para terminar sus salidas, así que no se necesitarían traslados entre ciudades.';
-  else{
-    const parts=tos.map(to=>{const froms=[...new Set(give.filter(g=>g.to===to).map(g=>g.from))];
-      return `<b>${esc(to)}</b> necesita refuerzo: ${lst(froms.map(f=>`${esc(f)} podría aportar ${lst(give.filter(g=>g.to===to&&g.from===f).map(g=>`${nf.format(g.q)} unidades de ${esc(g.p)}`))}`))}`;});
-    txt=`Si cada ciudad sigue entregando al ritmo real que lleva, ${parts.length?parts.join('; ')+'.':''}`;
-    if(left.length)txt+=` Aun con esos traslados quedarían sin cubrir: ${lst(left.map(l=>`${nf.format(l.q)} unidades de ${esc(l.p)} en ${esc(l.to)}`))}, que habría que reponer con nuevo despacho.`;
-    else if(give.length)txt+=' Con estos traslados todas las ciudades podrían terminar sus salidas.';
-  }
-  return `<div class="reco"><h4>Recomendación entre ciudades</h4><p>${txt}</p><p class="mini">Es una estimación con el ritmo de entrega actual y no está asegurada al 100 %: depende de cómo se entregue el merch en las salidas que faltan (si una ciudad entrega más o menos de lo habitual, sus sobrantes y faltantes cambian).</p></div>`;
+  const me=sel.c.name,items=a=>lst(a.map(g=>`${nf.format(g.q)} ${g.q===1?'unidad':'unidades'} de ${esc(g.p)}`));
+  const recv=give.filter(g=>g.to===me),gave=give.filter(g=>g.from===me),miss=left.filter(l=>l.to===me);
+  const parts=[];
+  if(recv.length){const froms=[...new Set(recv.map(g=>g.from))];
+    parts.push(`<b>${esc(me)}</b> necesitaría refuerzo si sigue al ritmo real que lleva: ${lst(froms.map(f=>`${esc(f)} podría aportar ${items(recv.filter(g=>g.from===f))}`))}.`);}
+  if(miss.length)parts.push(`${recv.length?'Aun con ese apoyo':'Si sigue al ritmo real que lleva'}, a ${esc(me)} le quedarían sin cubrir ${lst(miss.map(l=>`${nf.format(l.q)} ${l.q===1?'unidad':'unidades'} de ${esc(l.p)}`))}, que habría que reponer con nuevo despacho.`);
+  if(gave.length){const tos=[...new Set(gave.map(g=>g.to))];
+    parts.push(`<b>${esc(me)}</b> tendría merch de sobra y podría aportar ${lst(tos.map(t=>`${items(gave.filter(g=>g.to===t))} a ${esc(t)}`))}.`);}
+  if(!parts.length)parts.push(`Si <b>${esc(me)}</b> sigue entregando al ritmo real que lleva, le alcanza el merch para terminar sus salidas y no necesita refuerzo de otras ciudades ni tiene sobrantes importantes para aportar.`);
+  const txt=parts.join(' ');
+  return `<div class="reco"><h4>Recomendación para ${esc(sel.c.name)}</h4><p>${txt}</p><p class="mini">Es una estimación con el ritmo de entrega actual y no está asegurada al 100 %: depende de cómo se entregue el merch en las salidas que faltan (si una ciudad entrega más o menos de lo habitual, sus sobrantes y faltantes cambian).</p></div>`;
 }
 /* ---------- Merch y detalle de la ciudad elegida ---------- */
 function renderMerch(D){
@@ -398,7 +398,7 @@ function renderMerch(D){
       <div class="verdict ${vA.cls}">${vA.t}</div>${scTbl(d.A,'Por salida',false)}</div>
     <div><span class="tag">Escenario B</span><h3>Si seguimos entregando al ritmo real de ${esc(d.c.name)}</h3>
       <p class="mini">Se calcula con el promedio entregado por salida ${d.usaPost?`desde el ${esc(fmtD(S.cambio))} (${d.nBase} salidas)`:`en las ${d.nBase} salidas ejecutadas`}, en las ${R} salidas que faltan.</p>
-      <div class="verdict ${vB.cls}">${vB.t}</div>${scTbl(d.B,'Promedio por salida',true)}${recoHtml(D,ps)}</div>
+      <div class="verdict ${vB.cls}">${vB.t}</div>${scTbl(d.B,'Promedio por salida',true)}${recoHtml(D,ps,d)}</div>
   </div>`;
   /* Detalle: solo la ciudad elegida */
   const done=d.list.filter(s=>S.reps[s.id]);
