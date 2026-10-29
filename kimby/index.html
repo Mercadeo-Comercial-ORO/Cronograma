@@ -269,7 +269,7 @@ function viewKimby(){
   <div class="panel acl"><dl>
     <div><dt>Salida ejecutada</dt><dd>Salida que ya cuenta con su informe de cierre, elaborado por el coordinador de ORO que la acompañó.</dd></div>
     <div><dt>Flujo de personas en el PDV</dt><dd>Lo reporta el coordinador de ORO al cerrar cada salida. <b>Bajo:</b> el punto estuvo solo o con muy pocas personas durante buena parte de la jornada. <b>Medio:</b> hubo personas de forma constante, pero sin aglomeración. <b>Alto:</b> el punto estuvo concurrido durante casi toda la jornada. Los números se muestran como porcentaje de las salidas ejecutadas: por ejemplo, si hay 39 salidas ejecutadas (=&nbsp;100&nbsp;%) y 10 tuvieron flujo alto, equivalen al 25,6&nbsp;%.</dd></div>
-    <div><dt>Calificación de los PDV</dt><dd>Promedio de las calificaciones que dan los coordinadores de ORO a cada punto de venta, de 1 a 10, según tres criterios: ubicación del PDV, disponibilidad de producto y disposición del equipo de acompañamiento de Kimby. <b>1 a 4:</b> baja · <b>5 a 8:</b> media · <b>9 a 10:</b> alta. <i>Fórmula:</i> promedio simple = suma de las calificaciones ÷ número de salidas calificadas (el general usa todas las salidas, no el promedio de los promedios de ciudad).</dd></div>
+    <div><dt>Calificación de los PDV</dt><dd>Es la nota de 1 a 10 que el coordinador de ORO le pone a cada punto de venta al terminar la salida. Se fija en tres cosas: la ubicación del punto, si había producto disponible y la disposición del equipo de Kimby que acompañó. <b>1 a 4:</b> nota baja · <b>5 a 8:</b> nota media · <b>9 a 10:</b> nota alta.<br><i>Cómo se calcula:</i> se suman todas las notas y el resultado se divide entre el número de salidas calificadas. Ejemplo: con notas de 6, 8 y 10, la suma es 24 y 24 ÷ 3 = 8,0.</dd></div>
     <div><dt>Merch disponible</dt><dd>Merch que hay hoy en la ciudad <b>más</b> el que va en camino. El que va en camino ya está sumado en el disponible: no se suma otra vez.</dd></div>
     <div><dt>Venta promedio por salida</dt><dd>Ventas de las salidas ejecutadas ÷ número de salidas ejecutadas.</dd></div>
     <div><dt>Ticket promedio</dt><dd>Ventas de las salidas ejecutadas ÷ unidades de merch entregadas (sin contar las bolsas, que se entregan de forma automática).</dd></div>
@@ -289,7 +289,7 @@ function viewKimby(){
     <div class="kpi"><span class="l">Ventas en las salidas</span><span class="v">${money(T.ventas)}</span><span class="s">Suma de las ${nf.format(T.H)} salidas ejecutadas</span></div>
     <div class="kpi"><span class="l">Venta promedio por salida</span><span class="v">${T.H?money(T.ventas/T.H):'—'}</span><span class="s">Ventas ÷ salidas ejecutadas</span></div>
     <div class="kpi"><span class="l">Flujo de personas en el PDV</span><span class="v" style="font-size:16px;line-height:1.5">${flujoChips(T.flujo,T.H)}</span><span class="s">% de las ${nf.format(T.H)} salidas ejecutadas (${nf.format(T.H)} = 100 %)</span></div>
-    <div class="kpi"><span class="l">Calificación de los PDV</span><span class="v">${T.rn?dec1(T.rs/T.rn)+' / 10':'—'}</span><span class="s">${T.rn?`Calificación ${nivel(T.rs/T.rn)}. `:''}Promedio simple de lo que califican los coordinadores de ORO (ubicación, producto y equipo de Kimby)</span></div>
+    <div class="kpi"><span class="l">Calificación de los PDV</span><span class="v">${T.rn?dec1(T.rs/T.rn)+' / 10':'—'}</span><span class="s">${T.rn?`Nota ${nivel(T.rs/T.rn)}. `:''}Promedio de las notas (1 a 10) que ponen los coordinadores de ORO</span></div>
     <div class="kpi"><span class="l">Programación</span><span class="v" style="font-size:20px">${lastDay?esc(fmtD(lastDay)):'—'}</span><span class="s">Fecha de la última salida programada</span></div>
   </div>
 </section>
@@ -314,7 +314,7 @@ function viewKimby(){
         <div><dt>Venta promedio por salida</dt><dd>${d.H?money(d.ventas/d.H):'—'}</dd></div>
         <div><dt>Ticket promedio</dt><dd>${ticket(d)!==null?money(ticket(d)):'—'} <small class="mini">ventas ÷ unidades de merch entregadas (sin bolsas)</small></dd></div>
         <div><dt>Flujo de personas en el PDV</dt><dd>${flujoChips(d.flujo,d.H)}<small class="mini" style="display:block">% de las ${d.H} salidas ejecutadas</small></dd></div>
-        <div><dt>Calificación de los PDV</dt><dd>${d.rating!==null?dec1(d.rating)+' / 10 <small class="mini">'+nivel(d.rating)+' · promedio de coordinadores de ORO</small>':'—'}</dd></div>
+        <div><dt>Calificación de los PDV</dt><dd>${d.rating!==null?dec1(d.rating)+' / 10 <small class="mini">nota '+nivel(d.rating)+' · promedio de las notas de ORO</small>':'—'}</dd></div>
       </dl>
     </div></article>`).join('')}</div>
 </section>
