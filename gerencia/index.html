@@ -48,6 +48,12 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:16px
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
 .card{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-decoration:none;color:inherit;position:relative;transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.card .lg{background:#fff;border:1px solid var(--line);border-radius:10px;height:64px;display:flex;align-items:center;justify-content:center;padding:8px 12px;margin-bottom:6px}
+.card .lg img{max-height:46px;max-width:100%;width:auto}
+.card .gos{margin-top:auto;padding-top:6px;display:flex;flex-wrap:wrap;gap:6px 16px}
+.card .gos a{font-weight:600;font-size:14px;color:var(--violet);text-decoration:none}
+.card .gos a:hover{text-decoration:underline}
+div.card:hover{transform:none}
 .card .k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent)}
 .card h3{font-size:19px;font-weight:800}
 .card p{margin:0;color:var(--muted);font-size:14px}
@@ -85,9 +91,10 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:16px
       <h2>Propuestas comerciales</h2>
       <div class="grid">
         <a class="card" href="resumen.html">
+          <div class="lg"><img src="../assets/oro.png" alt="Organización Radial Olímpica"></div>
           <span class="k">Control de propuestas</span>
           <h3>Resumen de propuestas</h3>
-          <p>Valor propuesto y ejecutado por mes, mezcla de medios y rankings por ejecutivo, ciudad y cliente, con filtros.</p>
+          <p>Valor propuesto y ejecutado por mes, mezcla de medios y rankings por ejecutivo, ciudad y cliente. Incluye solo las propuestas registradas desde agosto de 2026.</p>
           <span class="go">Abrir resumen →</span>
         </a>
         <a class="card" href="../" data-k="maestra">
@@ -103,27 +110,31 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:16px
       <h2>Resultados de activaciones</h2>
       <div class="grid">
         <a class="card" href="buscapina.html">
+          <div class="lg"><img src="logos/buscapina.webp" alt="Buscapina"></div>
           <span class="k">Buscapina · Barranquilla</span>
           <h3>Informes por salida</h3>
           <p>Reporte de cada salida con tiendas visitadas, entregas, resultados y evidencia fotográfica.</p>
           <span class="go">Ver informes →</span>
         </a>
-        <a class="card" href="comarrico.html">
-          <span class="k">Comarrico · Barranquilla</span>
-          <h3>Informes y reporte al cliente</h3>
-          <p>Informes por salida y el informe general por día que se envía al cliente (pestaña «Informe cliente»).</p>
-          <span class="go">Ver informes →</span>
-        </a>
+        <div class="card">
+          <div class="lg"><img src="logos/comarrico.webp" alt="Comarrico"></div>
+          <span class="k">Comarrico · Barranquilla · finalizada</span>
+          <h3>Scorecard e informes</h3>
+          <p>Scorecard con los resultados finales de la activación (descargable en PDF) e informes de cada salida con fotos.</p>
+          <div class="gos"><a href="comarrico-informe.html">Ver scorecard →</a><a href="comarrico.html">Informes por salida →</a></div>
+        </div>
         <a class="card" href="../kimby/" data-k="kimby">
+          <div class="lg"><img src="logos/kimby.webp" alt="Kimby"></div>
           <span class="k">Kimby · 4 ciudades</span>
           <h3>Scorecard Kimby</h3>
           <p>Resultados consolidados por ciudad, aprendizajes y comentarios clave, tal como los ve el cliente.</p>
           <span class="go">Ver scorecard →</span>
         </a>
         <a class="card" href="kimby-reportes.html">
+          <div class="lg"><img src="logos/kimby.webp" alt="Kimby"></div>
           <span class="k">Kimby · coordinadores</span>
           <h3>Así reportan los coordinadores <span class="tag">Demostración</span></h3>
-          <p>La vista del coordinador de Barranquilla: llena un reporte de prueba, cópialo o envíalo por WhatsApp. Nada se guarda en el tablero real.</p>
+          <p>Ejemplo con Barranquilla de cómo cada coordinador registra sus salidas, y el control de merch con los escenarios A y B. Nada se guarda en el tablero real.</p>
           <span class="go">Probar reporte →</span>
         </a>
       </div>

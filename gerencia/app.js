@@ -56,7 +56,8 @@
   };
 
   /* ---------- base de datos en memoria (misma forma que la del tablero) ---------- */
-  var D = new Map(), LS = [], DEMO = false;
+  var D = new Map(), LS = [], DEMO = false, ULT = 0;
+  ["pointerdown", "keydown"].forEach(function (ev) { addEventListener(ev, function () { ULT = Date.now(); }, true); });
   var clone = function (x) { return x == null ? x : JSON.parse(JSON.stringify(x)); };
   var parent = function (p) { return p.slice(0, p.lastIndexOf("/")); };
   var leaf = function (p) { return p.slice(p.lastIndexOf("/") + 1); };
@@ -68,7 +69,7 @@
     return { docs: docs, size: docs.length, empty: !docs.length, forEach: function (f) { docs.forEach(f); } };
   }
   function notify(p) {
-    if (DEMO) aviso("Demostración: el cambio se ve solo en esta pantalla y no llega al tablero real.");
+    if (DEMO && Date.now() - ULT < 4000) aviso("Demostración: el cambio se ve solo en esta pantalla y no llega al tablero real.");
     LS.forEach(function (l) {
       if (l.kind === "doc" && l.path === p) setTimeout(function () { l.cb(dsnap(p)); });
       if (l.kind === "col" && l.path === parent(p)) setTimeout(function () { l.cb(qsnap(l.path)); });
@@ -143,7 +144,7 @@
   function ejecutar(P) {
     try { Object.keys(P.ls || {}).forEach(function (k) { localStorage.setItem(k, P.ls[k]); }); } catch (e) {}
     Object.keys(P.db || {}).forEach(function (p) { D.set(p, P.db[p]); });
-    window.__TF = function (l) { if (!P.tabs) return l; var f = l.filter(function (x) { return P.tabs.indexOf(x.id) >= 0; }); return f.length ? f : l; };
+    window.__TF = function (l) { var f = P.tabs ? l.filter(function (x) { return P.tabs.indexOf(x.id) >= 0; }) : l; if (!f.length) f = l; var N = P.nombres || {}; return f.map(function (x) { return N[x.id] ? { id: x.id, n: N[x.id] } : x; }); };
     var USER = {
       isOwner: function () { return Promise.resolve(!!P.owner); },
       id: function () { return Promise.resolve(P.uid || null); },
@@ -173,17 +174,32 @@
     doc0.querySelectorAll("script").forEach(function (s) { scripts.push({ src: s.getAttribute("src"), text: s.textContent }); s.remove(); });
     var base = document.createElement("style");
     base.textContent = ":root{box-sizing:border-box}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}" +
-      "#__gbar{position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:8px;align-items:center;font:600 13px system-ui,sans-serif}" +
-      "#__gbar a{background:#1d1a2b;color:#fff;text-decoration:none;border-radius:999px;padding:8px 14px;box-shadow:0 4px 14px rgba(0,0,0,.25)}" +
-      "#__gbar span{background:#ec6a16;color:#fff;border-radius:999px;padding:8px 12px;box-shadow:0 4px 14px rgba(0,0,0,.25)}" +
+      ":root{--gbar:52px}body{padding-top:var(--gbar)!important}" +
+      "#__gbar{position:fixed;top:0;left:0;right:0;height:var(--gbar);z-index:2147483000;display:flex;gap:10px;align-items:center;padding:0 14px;background:#1d1a2b;color:#fff;font:600 14px system-ui,-apple-system,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.3)}" +
+      "#__gbar a{display:inline-flex;align-items:center;gap:8px;background:#ec6a16;color:#fff;text-decoration:none;border-radius:999px;padding:9px 18px;font-weight:700;white-space:nowrap}" +
+      "#__gbar a:hover{background:#ff7d2b}#__gbar a:focus-visible{outline:3px solid #fff;outline-offset:2px}" +
+      "#__gbar .t{opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}" +
+      "#__gbar .d{background:#fff;color:#1d1a2b;border-radius:999px;padding:5px 12px;font-size:12px;white-space:nowrap}" +
+      "@media (max-width:560px){#__gbar .t{display:none}#__gbar .d{margin-left:auto}}" +
+      "nav.tabs,.toolbar{top:var(--gbar)!important}.fi-prev{top:calc(var(--gbar) + 60px)!important}" +
+      ".__gnota{max-width:1240px;margin:14px auto 0;padding:12px 16px;border-radius:10px;background:#fff1dc;color:#3a2a0e;border-left:5px solid #ec6a16;font:14px/1.5 system-ui,-apple-system,sans-serif}" +
+      "main+.__gnota,.__gnota+main{}" +
       "#__gmsg{position:fixed;right:12px;bottom:12px;z-index:9999;max-width:min(360px,calc(100% - 24px));background:#1d1a2b;color:#fff;border-radius:10px;padding:10px 14px;font:13px system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25)}" +
       "@media print{#__gbar,#__gmsg{display:none!important}}" + (P.css || "");
     document.head.appendChild(base);
     document.body.innerHTML = "";
     Array.from(doc0.head.childNodes).concat(Array.from(doc0.body.childNodes)).forEach(function (n) { document.body.appendChild(document.importNode(n, true)); });
     var bar = document.createElement("div"); bar.id = "__gbar";
-    bar.innerHTML = '<a href="./">← Portal de gerencia</a>' + (P.demo ? "<span>Demostración: nada se guarda</span>" : "");
-    document.body.appendChild(bar);
+    bar.innerHTML = '<a href="./">← Volver al Portal de Gerencia</a><span class="t"></span>' + (P.demo ? '<span class="d">Demostración: nada se guarda</span>' : "");
+    bar.querySelector(".t").textContent = (P.titulo || "").replace(/ · ORO$/, "");
+    document.body.insertBefore(bar, document.body.firstChild);
+    window.__KMCSS = P.kmcss || "";
+    if (P.rol) { var fixRol = function () { var r = document.getElementById("role"); if (r && r.textContent !== P.rol) r.textContent = P.rol; }; [300, 1200, 3000].forEach(function (ms) { setTimeout(fixRol, ms); }); }
+    if (P.nota) { var tn = document.querySelector(P.nota.sel); if (tn) tn.insertAdjacentHTML(P.nota.pos || "afterbegin", P.nota.html); }
+    if (P.extra) {
+      var addX = function () { var tb = document.getElementById("tabs"); if (!tb || tb.querySelector(".__gx")) return; P.extra.forEach(function (x) { var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "tab"); b.className = "__gx"; b.textContent = x.n; b.addEventListener("click", function () { location.href = x.href; }); tb.appendChild(b); }); };
+      new MutationObserver(addX).observe(document.body, { childList: true, subtree: true }); setTimeout(addX, 50);
+    }
     DEMO = !!P.demo;
     if (P.selector) { var tq = null; new MutationObserver(function () { clearTimeout(tq); tq = setTimeout(selector, 60); }).observe(document.body, { childList: true, subtree: true }); }
     scan(document.body);

@@ -30,16 +30,33 @@ KIMBY_DEMO_UID = "u_CjltZQvds22K8ShFdkSkqg"   # coordinador de Barranquilla: sus
 OWNER_UID = "u_poWye5htYCnR8u4OFuW9hA"
 
 # vista -> (tablero de origen, título, configuración)
+NOTA_RESUMEN = ('<div class="__gnota" role="note"><b>Importante:</b> estas cifras no corresponden al total real ejecutado por el área. '
+                'Solo incluyen las propuestas registradas en este reporte, creado en Claude por el área de Estrategia Comercial y '
+                'Activaciones en agosto de 2026.</div>')
+NOTA_KIMBY = ('<div class="__gnota" role="note"><b>Vista de ejemplo.</b> Así registra cada coordinador de ORO sus salidas: '
+              'el formulario muestra la ciudad de <b>Barranquilla</b> como ejemplo, pero el mismo proceso se hace en cada ciudad '
+              '(Bogotá, Medellín y Cartagena). En la segunda pestaña está el control de merch con los escenarios A y B y las '
+              'recomendaciones. Lo que llenes aquí no se guarda en el tablero real.</div>')
+KM_CSS_DEMO = ".k2-main>.sc-t,.k2-main>.intro,.k2-main>section.sec:not(:has(#merch)){display:none!important}"
+
+# vista -> (tablero de origen, título, configuración)
 VISTAS = {
     "resumen": ("tablero", "Resumen de propuestas · ORO", {
         "owner": True, "uid": OWNER_UID, "can": False, "ls": {"oro-view": "resumen"},
-        "css": "#tab-lista,#tab-gantt,#tab-config{display:none!important}"}),
+        "css": "#tab-lista,#tab-gantt,#tab-config{display:none!important}",
+        "nota": {"sel": "#view-resumen", "pos": "afterbegin", "html": NOTA_RESUMEN}}),
     "buscapina": ("buscapina", "Informes Buscapina · ORO", {
         "owner": True, "uid": OWNER_UID, "tabs": ["informes"], "ls": {"buscapina-tab": "informes"}, "selector": True}),
     "comarrico": ("comarrico", "Informes Comarrico · ORO", {
-        "owner": True, "uid": OWNER_UID, "tabs": ["informes", "cliente"], "ls": {"comarrico-tab": "informes"}, "selector": True}),
+        "owner": True, "uid": OWNER_UID, "tabs": ["informes"], "ls": {"comarrico-tab": "informes"}, "selector": True,
+        "extra": [{"n": "Informe al cliente", "href": "comarrico-informe.html"}]}),
+    "comarrico-informe": ("comarrico", "Scorecard Comarrico · ORO", {"generado": "scorecard_comarrico"}),
     "kimby-reportes": ("kimby", "Reportes coordinadores Kimby · ORO", {
-        "owner": False, "uid": KIMBY_DEMO_UID, "tabs": ["reportar", "informes"], "ls": {"kimby-tab": "reportar"},
+        "owner": True, "uid": OWNER_UID, "tabs": ["reportar", "kimby"], "ls": {"kimby-tab": "reportar"},
+        "nombres": {"reportar": "Reportar salida (ejemplo Barranquilla)", "kimby": "Control de merch: escenarios A y B"},
+        "css": "label.f:has(#r-city),.btns:has(#r-savedir){display:none!important}", "rol": "Coordinador · Barranquilla (ejemplo)", "kmcss": KM_CSS_DEMO,
+        "nota": {"sel": "main", "pos": "beforebegin", "html": NOTA_KIMBY},
+        "parches": [["root.innerHTML=`<style>${KM_CSS}</style>", "root.innerHTML=`<style>${KM_CSS}${window.__KMCSS||''}</style>"]],
         "demo": True}),
 }
 
@@ -70,8 +87,12 @@ def db_vista(vista, datos):
     origen = VISTAS[vista][0]
     carpeta = os.path.join(datos, origen)
     if vista == "kimby-reportes":
-        u = KIMBY_DEMO_UID
-        return leer_db(carpeta, lambda r: r in (f"asignacion/{u}", f"reportes/{u}") or r.startswith(f"reportes/{u}/salidas/"))
+        # vista de control general, con Barranquilla como primera ciudad (la que abre el formulario de ejemplo)
+        db = leer_db(carpeta, lambda r: r.split("/")[0] in ("config", "movimientos", "reportes", "asignacion"))
+        main = db.get("config/main")
+        if main and main.get("cities"):
+            main["cities"].sort(key=lambda c: c.get("id") != "baq")
+        return db
     return leer_db(carpeta)
 
 
@@ -126,7 +147,7 @@ def main():
     for v, (origen, _, _) in VISTAS.items():
         if origen == "tablero":
             continue
-        ids = ids_fotos(dbs[v])
+        ids = ids_fotos({k: x for k, x in dbs[v].items() if origen != "kimby" or k.startswith(f"reportes/{KIMBY_DEMO_UID}/")})
         if a.apps and os.path.exists(os.path.join(a.apps, origen + ".html")):
             ids |= set(re.findall(r"/_blob/([0-9a-f]{32})", open(os.path.join(a.apps, origen + ".html"), encoding="utf-8").read()))
         por_tablero.setdefault(origen, set()).update(ids)
@@ -167,7 +188,19 @@ def main():
     os.makedirs(os.path.join(a.out, "d"), exist_ok=True)
     resumen = []
     for v, (origen, titulo, cfg) in VISTAS.items():
-        html = limpiar_html(open(os.path.join(a.apps, origen + ".html"), encoding="utf-8").read())
+        cfg = dict(cfg)
+        if cfg.get("generado"):
+            import importlib
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            html = importlib.import_module(cfg.pop("generado")).html(dbs[v])
+            dbs[v] = {}
+        else:
+            html = limpiar_html(open(os.path.join(a.apps, origen + ".html"), encoding="utf-8").read())
+        for viejo, nuevo in cfg.pop("parches", []):
+            if viejo in html:
+                html = html.replace(viejo, nuevo)
+            else:
+                print(f"AVISO: {v}: no se pudo aplicar un ajuste al código del tablero (cambió el tablero).")
         if "tabsDef0" not in html and cfg.get("tabs"):
             print(f"AVISO: {v}: no se encontró tabsDef(); se muestran todas las pestañas del tablero.")
         carga = dict(cfg, html=html, db=dbs[v], titulo=titulo)
