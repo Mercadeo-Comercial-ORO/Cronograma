@@ -51,13 +51,6 @@ VISTAS = {
         "owner": True, "uid": OWNER_UID, "tabs": ["informes"], "ls": {"comarrico-tab": "informes"}, "selector": True,
         "extra": [{"n": "Informe al cliente", "href": "comarrico-informe.html"}]}),
     "comarrico-informe": ("comarrico", "Scorecard Comarrico · ORO", {"generado": "scorecard_comarrico"}),
-    "kimby-reportes": ("kimby", "Reportes coordinadores Kimby · ORO", {
-        "owner": True, "uid": OWNER_UID, "tabs": ["reportar", "kimby"], "ls": {"kimby-tab": "reportar"},
-        "nombres": {"reportar": "Reportar salida (ejemplo Barranquilla)", "kimby": "Control de merch: escenarios A y B"},
-        "css": "label.f:has(#r-city),.btns:has(#r-savedir){display:none!important}", "rol": "Coordinador · Barranquilla (ejemplo)", "kmcss": KM_CSS_DEMO,
-        "nota": {"sel": "main", "pos": "beforebegin", "html": NOTA_KIMBY},
-        "parches": [["root.innerHTML=`<style>${KM_CSS}</style>", "root.innerHTML=`<style>${KM_CSS}${window.__KMCSS||''}</style>"]],
-        "demo": True}),
 }
 
 

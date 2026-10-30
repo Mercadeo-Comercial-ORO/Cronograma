@@ -439,4 +439,4 @@ $('#logout').addEventListener('click',()=>{try{localStorage.removeItem(KEY)}catc
 fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(async d=>{DATA=d;let pw=null;try{pw=localStorage.getItem(KEY)}catch(_){}
   if(pw&&!(await tryPw(pw,true))){try{localStorage.removeItem(KEY)}catch(_){}}}).catch(()=>{$('#err').textContent='No se pudieron cargar los datos. Recarga la página.';});
 })();
-</script></body></html>
+</script><script src="../gerencia/volver.js" defer></script></body></html>

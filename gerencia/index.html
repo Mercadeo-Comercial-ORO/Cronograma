@@ -49,6 +49,8 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:16px
 .card{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-decoration:none;color:inherit;position:relative;transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);transform:translateY(-1px)}
 .card .lg{background:#fff;border:1px solid var(--line);border-radius:10px;height:64px;display:flex;align-items:center;justify-content:center;padding:8px 12px;margin-bottom:6px}
+.card .lg.st5{gap:10px;justify-content:space-around;flex-wrap:nowrap}
+.card .lg.st5 img{max-height:34px;min-width:0;flex:0 1 auto}
 .card .lg img{max-height:46px;max-width:100%;width:auto}
 .card .gos{margin-top:auto;padding-top:6px;display:flex;flex-wrap:wrap;gap:6px 16px}
 .card .gos a{font-weight:600;font-size:14px;color:var(--violet);text-decoration:none}
@@ -98,6 +100,7 @@ div.card:hover{transform:none}
           <span class="go">Abrir resumen →</span>
         </a>
         <a class="card" href="../" data-k="maestra">
+          <div class="lg st5"><img src="../assets/olimpica.png" alt="Olímpica Stereo"><img src="../assets/mix.png" alt="Mix Radio"><img src="../assets/tiempo.png" alt="Radio Tiempo"><img src="../assets/reina.png" alt="La Reina"><img src="../assets/atlantico.png" alt="Emisora Atlántico"></div>
           <span class="k">Cronograma</span>
           <h3>Cronograma general por ciudad</h3>
           <p>Salidas de todas las ciudades con fecha, horario, cliente y ejecutivo. Es la misma vista que usan los directores.</p>
@@ -129,13 +132,6 @@ div.card:hover{transform:none}
           <h3>Scorecard Kimby</h3>
           <p>Resultados consolidados por ciudad, aprendizajes y comentarios clave, tal como los ve el cliente.</p>
           <span class="go">Ver scorecard →</span>
-        </a>
-        <a class="card" href="kimby-reportes.html">
-          <div class="lg"><img src="logos/kimby.webp" alt="Kimby"></div>
-          <span class="k">Kimby · coordinadores</span>
-          <h3>Así reportan los coordinadores <span class="tag">Demostración</span></h3>
-          <p>Ejemplo con Barranquilla de cómo cada coordinador registra sus salidas, y el control de merch con los escenarios A y B. Nada se guarda en el tablero real.</p>
-          <span class="go">Probar reporte →</span>
         </a>
       </div>
     </section>

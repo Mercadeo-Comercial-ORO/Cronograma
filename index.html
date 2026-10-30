@@ -344,5 +344,6 @@ $("#win").addEventListener("change",render);
 (async()=>{ let pw=null; try{ pw=localStorage.getItem(KEY); }catch(e){}
   if(pw){ try{ const ses=await unlock(pw); if(ses) enter(ses); }catch(e){} } })();
 </script>
+<script src="gerencia/volver.js" defer></script>
 </body>
 </html>
