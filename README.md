@@ -15,3 +15,10 @@ Landing para el cliente Kimby con los resultados de la activación (pestaña "Ki
 - Una sola contraseña para el cliente. Los datos (`kimby/data.json`) van cifrados (AES-GCM + PBKDF2); la contraseña **no** se guarda en este repositorio.
 - No incluye textos de informes, novedades, fotos, ubicaciones ni descargas.
 - Se actualiza todos los lunes a las 11:55 a. m. (hora de Colombia) con `tools/kimby.py`.
+
+## Portal de gerencia (`gerencia/`)
+
+Vistas de consulta para gerencia, con una sola contraseña: resumen de propuestas, informes de Buscapina y Comarrico
+(con el informe al cliente), demostración del reporte de coordinadores de Kimby y accesos al cronograma general y al
+scorecard de Kimby. Todo va cifrado (HTML de las vistas, datos y fotos) y se genera con `tools/gerencia.py`
+(ver su ayuda). La contraseña nunca se guarda en el repositorio. Se actualiza una vez por semana con una tarea programada.
