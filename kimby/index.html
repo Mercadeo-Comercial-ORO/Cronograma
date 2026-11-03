@@ -343,8 +343,8 @@ ${R&&R.general?`<section class="sec res" aria-labelledby="h3">
 </section>
 
 <section class="sec" aria-labelledby="h5">
-  <div class="sec-h"><span class="step">${st()} · Detalle</span><h2 id="h5">Merch entregado en cada salida</h2>
-  <p>Cada fila es una salida ejecutada de la ciudad elegida. Entre paréntesis, la cantidad prevista por salida en el plan inicial; desde el ${esc(fmtD(S.cambio))} el coordinador de ORO puede entregar hasta el doble.</p></div>
+  <div class="sec-h"><span class="step">${st()} · Detalle</span><h2 id="h5">Detalle por ciudad y fecha</h2>
+  <p>Cada fila es una salida ejecutada de la ciudad elegida, con su ticket promedio, sus ventas y el merch entregado. El ticket promedio del día es ventas ÷ unidades de merch entregadas (sin bolsas). Entre paréntesis, la cantidad prevista por salida en el plan inicial; desde el ${esc(fmtD(S.cambio))} el coordinador de ORO puede entregar hasta el doble.</p></div>
   <div class="seg" data-tabs role="group" aria-label="Ciudad"></div>
   <div id="detalle"></div>
 </section>`;
@@ -402,14 +402,15 @@ function renderMerch(D){
   </div>`;
   /* Detalle: solo la ciudad elegida */
   const done=d.list.filter(s=>S.reps[s.id]);
-  const tot={};ps.forEach(p=>tot[p.id]=0);
-  const rows=done.map(s=>{const r=S.reps[s.id],e=r.entregado||{};let te=0;
-    const tds=ps.map(p=>{const v=num(e[p.id]);tot[p.id]+=v;te+=v;return `<td class="r">${nf.format(v)}</td>`;}).join('');
-    return `<tr><td class="nowrap"><b>${esc(fmtD(s.date))}</b></td><td>${esc(r.pdv||s.pdv||'—')}</td>${tds}<td class="r"><b>${nf.format(te)}</b></td></tr>`;}).join('');
+  const tot={};ps.forEach(p=>tot[p.id]=0);let tvent=0,tunid=0;
+  const rows=done.map(s=>{const r=S.reps[s.id],e=r.entregado||{};let te=0,tu=0;
+    const tds=ps.map(p=>{const v=num(e[p.id]);tot[p.id]+=v;te+=v;if(p.id!=='bolsa')tu+=v;return `<td class="r">${nf.format(v)}</td>`;}).join('');
+    const vt=num(r.ventas);tvent+=vt;tunid+=tu;
+    return `<tr><td class="nowrap"><b>${esc(fmtD(s.date))}</b></td><td>${esc(r.pdv||s.pdv||'—')}</td><td class="r nowrap">${tu?money(vt/tu):'—'}</td><td class="r nowrap">${money(vt)}</td>${tds}<td class="r"><b>${nf.format(te)}</b></td></tr>`;}).join('');
   const gt=ids.reduce((a,id)=>a+tot[id],0);
   $('#detalle').innerHTML=`<details class="dt"${S.detOpen?' open':''}><summary>${esc(d.c.name)} <span>${d.H} de ${d.N} salidas ejecutadas</span></summary>
-    ${done.length?`<div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Punto de venta</th>${ps.map(p=>`<th class="r">${esc(p.name)}<br><span style="font-weight:500">(${p.base})</span></th>`).join('')}<th class="r">Total</th></tr></thead><tbody>${rows}
-    <tr class="foot"><td colspan="2">Total ${esc(d.c.name)}</td>${ps.map(p=>`<td class="r">${nf.format(tot[p.id])}</td>`).join('')}<td class="r">${nf.format(gt)}</td></tr></tbody></table></div>`
+    ${done.length?`<div class="tbl-wrap"><table><thead><tr><th>Fecha</th><th>Punto de venta</th><th class="r">Ticket promedio</th><th class="r">Ventas del día</th>${ps.map(p=>`<th class="r">${esc(p.name)}<br><span style="font-weight:500">(${p.base})</span></th>`).join('')}<th class="r">Total</th></tr></thead><tbody>${rows}
+    <tr class="foot"><td colspan="2">Total ${esc(d.c.name)}</td><td class="r nowrap">${tunid?money(tvent/tunid):'—'}</td><td class="r nowrap">${money(tvent)}</td>${ps.map(p=>`<td class="r">${nf.format(tot[p.id])}</td>`).join('')}<td class="r">${nf.format(gt)}</td></tr></tbody></table></div>`
     :`<p class="mini" style="padding:14px 16px">Aún no hay salidas ejecutadas en esta ciudad.</p>`}</details>`;
 }
 
@@ -439,4 +440,4 @@ $('#logout').addEventListener('click',()=>{try{localStorage.removeItem(KEY)}catc
 fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(async d=>{DATA=d;let pw=null;try{pw=localStorage.getItem(KEY)}catch(_){}
   if(pw&&!(await tryPw(pw,true))){try{localStorage.removeItem(KEY)}catch(_){}}}).catch(()=>{$('#err').textContent='No se pudieron cargar los datos. Recarga la página.';});
 })();
-</script><script src="../gerencia/volver.js" defer></script></body></html>
+</script></body></html>
