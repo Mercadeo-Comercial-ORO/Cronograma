@@ -78,7 +78,14 @@ def main():
     ex_nombre = lambda i: (ejecutivos.get(i) or {}).get("nombre") or ""
     claves = json.load(open(a.claves, encoding="utf-8"))
 
-    base = [{"id": p["id"], "cliente": p.get("cliente", ""), "nombre": p.get("nombre", ""), "emisora": p.get("emisora", "Olímpica"), "manual": False} for p in p0]
+    # Ediciones hechas en el tablero sobre propuestas de Canva (e["ov"]) y propuestas eliminadas (e["eliminada"])
+    def _ov(pid):
+        e = estado.get(pid) or {}
+        return e.get("ov") if isinstance(e.get("ov"), dict) else {}
+    base = [{"id": p["id"], "cliente": _ov(p["id"]).get("cliente") or p.get("cliente", ""),
+             "nombre": _ov(p["id"]).get("nombre", p.get("nombre", "")),
+             "emisora": p.get("emisora", "Olímpica"), "manual": False}
+            for p in p0 if not (estado.get(p["id"]) or {}).get("eliminada")]
     for mid, m in manuales.items():
         base.append({"id": mid, "cliente": m.get("cliente") or "Sin cliente", "nombre": m.get("nombre", ""), "emisora": m.get("emisora") or "Olímpica", "manual": True})
 
