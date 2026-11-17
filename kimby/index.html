@@ -136,7 +136,7 @@ td.res-c b{font-weight:700}
 .sub-h{margin:6px 0 2px}
 .scen{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
 .scen>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
-.scen .tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hasta{display:block;font-size:12px;color:var(--muted);margin-top:2px;white-space:normal}
 .verdict{border-radius:8px;padding:10px 12px;font-size:14px}
 .verdict.ok{background:var(--ok-bg);color:var(--fg);border-left:4px solid var(--ok)}
 .verdict.bad{background:var(--bad-bg);color:var(--fg);border-left:4px solid var(--bad)}
@@ -150,7 +150,7 @@ details.dt[open] summary::before{content:"▾"}
 details.dt summary span{font-weight:500;color:var(--muted);font-size:13px;margin-left:auto}
 details.dt .tbl-wrap{border:0;border-radius:0;border-top:1px solid var(--line)}
 .nowrap{white-space:nowrap}
-@media (max-width:700px){th,td{padding:7px 6px;font-size:13px}th{font-size:10px;letter-spacing:0}main{padding-left:12px;padding-right:12px}.scen>div{padding:10px}.c-per{display:none}.hint-scroll{display:block!important}}
+@media (max-width:700px){th,td{padding:7px 6px;font-size:13px}th{font-size:10px;letter-spacing:0}main{padding-left:12px;padding-right:12px}.scen>div{padding:10px}.hint-scroll{display:block!important}}
 .hint-scroll{display:none;font-size:12px;color:var(--muted)}
 @media (max-width:520px){.city .two{gap:8px}.g .e0,.g .e1{font-size:9px}th,td{padding:8px 9px}.scen{grid-template-columns:1fr}}
 </style></head><body>
@@ -204,7 +204,7 @@ const sumD=(o,ids)=>ids.reduce((a,id)=>a+num(o[id]),0);
 function proyectar(rest,disp,per){
   /* rest: salidas que faltan; disp: disponible por producto; per: merch por salida y producto */
   const ps=products();
-  const rows=ps.map(p=>{const pp=per[p.id]||0,need=Math.ceil(rest.length*pp-1e-9),d=num(disp[p.id]);return {p,per:pp,need,disp:d,diff:d-need};});
+  const rows=ps.map(p=>{const pp=per[p.id]||0,need=Math.ceil(rest.length*pp-1e-9),d=num(disp[p.id]);const kp=pp>0?Math.min(rest.length,Math.floor((d+1e-9)/pp)):rest.length;return {p,per:pp,need,disp:d,diff:d-need,hasta:kp>0?rest[kp-1].date:null,next:kp<rest.length?rest[kp].date:null};});
   let minK=Infinity,lim=null;
   for(const r of rows){if(r.per>0){const k=Math.floor((r.disp+1e-9)/r.per);if(k<minK){minK=k;lim=r.p;}}}
   const K=Math.max(0,Math.min(minK,rest.length)),full=K>=rest.length;
@@ -223,15 +223,14 @@ function cityData(c){
   /* ritmo real: promedio por salida desde que se permite entregar hasta el doble; si aún no hay, el de todas las salidas */
   const post=done.filter(s=>s.date>=S.cambio),base=post.length?post:done;
   const avg={};ps.forEach(p=>{avg[p.id]=base.length?base.reduce((a,s)=>a+num(S.reps[s.id].entregado?.[p.id]),0)/base.length:p.base;});
-  const dper={};ps.forEach(p=>dper[p.id]=p.doble);
   const reps=done.map(s=>S.reps[s.id]);
   const rat=reps.map(r=>r.rating).filter(v=>v!==null&&v!==undefined&&v!=='');
   const flujo={alto:0,medio:0,bajo:0};reps.forEach(r=>{if(flujo[r.flujo]!==undefined)flujo[r.flujo]++;});
   const hoy=todayISO();
-  return {c,list,N,H,rest,next:rest.find(s=>s.date>=hoy)||rest[0]||null,last:list[N-1]||null,plan,dbl,cons,ciu,cam,disp,avg,nBase:base.length,usaPost:post.length>0,
+  return {c,list,N,H,rest,next:rest.find(s=>s.date>=hoy)||rest[0]||null,last:list[N-1]||null,plan,dbl,cons,ciu,cam,disp,avg,
     planT:sumD(plan,ids),dblT:sumD(dbl,ids),consT:sumD(cons,ids),ciuT:sumD(ciu,ids),camT:sumD(cam,ids),dispT:sumD(disp,ids),
     ventas:reps.reduce((a,r)=>a+num(r.ventas),0),flujo,rating:rat.length?rat.reduce((a,v)=>a+num(v),0)/rat.length:null,ratN:rat.length,
-    A:proyectar(rest,disp,dper),B:proyectar(rest,disp,avg)};
+    B:proyectar(rest,disp,avg)};
 }
 
 /* ---------- Componentes ---------- */
@@ -336,7 +335,7 @@ ${R&&R.general?`<section class="sec res" aria-labelledby="h3">
 </section>`:''}
 
 <section class="sec" aria-labelledby="h4">
-  <div class="sec-h"><span class="step">${st()} · Merch</span><h2 id="h4">¿Alcanza el merch para terminar las salidas?</h2>
+  <div class="sec-h"><span class="step">${st()} · Merch</span><h2 id="h4">SEGUIMIENTO DE MERCHANDISING POR CIUDAD</h2>
   <p>Elige una ciudad. “Disponible” es el merch que hay hoy en la ciudad más el que va en camino (ya sumado en la cifra).</p></div>
   <div class="seg" data-tabs role="group" aria-label="Ciudad"></div>
   <div id="merch"></div>
@@ -387,19 +386,14 @@ function renderMerch(D){
     if(sc.K===0)return {cls:'bad',t:`<b>No alcanza ni para la próxima salida</b> (${esc(fmtD(sc.nextShort))}).${lim} Para completar las ${R} salidas faltan ${nf.format(sc.falt)} unidades.`};
     return {cls:'bad',t:`<b>Alcanza hasta la salida del ${esc(fmtD(sc.last))}</b> (${sc.K} de ${R}).${lim} Para completar las ${R} salidas faltan ${nf.format(sc.falt)} unidades.`};
   };
-  const res=r=>r.diff<0?`<span class="bad nowrap"><b>Faltan ${nf.format(-r.diff)}</b></span>`:r.diff===0?`<span class="nowrap">Justo</span>`:`<span class="ok nowrap">Sobran ${nf.format(r.diff)}</span>`;
-  const scTbl=(sc,perLbl,dec)=>`<div class="tbl-wrap"><table><thead><tr><th>Producto</th><th class="r c-per">${perLbl}</th><th class="r">Necesario</th><th class="r">Disponible</th><th class="r">Resultado</th></tr></thead><tbody>
-    ${sc.rows.map(r=>`<tr><td>${esc(r.p.name)}</td><td class="r c-per">${dec?dec1(r.per):nf.format(r.per)}</td><td class="r">${nf.format(r.need)}</td><td class="r">${nf.format(r.disp)}</td><td class="r">${res(r)}</td></tr>`).join('')}
-    <tr class="foot"><td>Total unidades</td><td class="r c-per"></td><td class="r">${nf.format(sc.needT)}</td><td class="r">${nf.format(sc.dispT)}</td><td class="r">${(()=>{const n=sc.dispT-sc.needT;return n<0?`<span class="bad nowrap">Faltan ${nf.format(-n)}</span>`:n>0?`<span class="ok nowrap">Sobran ${nf.format(n)}</span>`:'<span class="nowrap">Justo</span>';})()}</td></tr></tbody></table></div><p class="mini" style="margin:6px 2px 0">El total es la diferencia neta (disponible − necesario); un producto que sobra no reemplaza a otro que falta.</p>`;
-  const vA=lineV(d.A),vB=lineV(d.B);
-  $('#merch').innerHTML=`<div class="scen">
-    <div><span class="tag">Escenario A</span><h3>Si en todas las salidas que faltan se entrega el doble</h3>
-      <p class="mini">Se calcula con el máximo permitido por salida (el doble del plan inicial) en las ${R} salidas que faltan.</p>
-      <div class="verdict ${vA.cls}">${vA.t}</div>${scTbl(d.A,'Por salida',false)}</div>
-    <div><span class="tag">Escenario B</span><h3>Si seguimos entregando al ritmo real de ${esc(d.c.name)}</h3>
-      <p class="mini">Se calcula con el promedio entregado por salida ${d.usaPost?`desde el ${esc(fmtD(S.cambio))} (${d.nBase} salidas)`:`en las ${d.nBase} salidas ejecutadas`}, en las ${R} salidas que faltan.</p>
-      <div class="verdict ${vB.cls}">${vB.t}</div>${scTbl(d.B,'Promedio por salida',true)}${recoHtml(D,ps,d)}</div>
-  </div>`;
+  const res=r=>r.diff<0?`<span class="bad nowrap"><b>Faltan ${nf.format(-r.diff)}</b></span><span class="hasta">${r.hasta?`Alcanza hasta el ${esc(fmtD(r.hasta))}`:`No alcanza ni para la próxima salida (${esc(fmtD(r.next))})`}</span>`:r.diff===0?`<span class="nowrap">Justo</span>`:`<span class="ok nowrap">Sobran ${nf.format(r.diff)}</span>`;
+  const scTbl=sc=>`<div class="tbl-wrap"><table><thead><tr><th>Producto</th><th class="r">Necesario</th><th class="r">Disponible</th><th class="r">Resultado</th></tr></thead><tbody>
+    ${sc.rows.map(r=>`<tr><td>${esc(r.p.name)}</td><td class="r">${nf.format(r.need)}</td><td class="r">${nf.format(r.disp)}</td><td class="r">${res(r)}</td></tr>`).join('')}
+    <tr class="foot"><td>Total unidades</td><td class="r">${nf.format(sc.needT)}</td><td class="r">${nf.format(sc.dispT)}</td><td class="r">${(()=>{const n=sc.dispT-sc.needT;return n<0?`<span class="bad nowrap">Faltan ${nf.format(-n)}</span>`:n>0?`<span class="ok nowrap">Sobran ${nf.format(n)}</span>`:'<span class="nowrap">Justo</span>';})()}</td></tr></tbody></table></div><p class="mini" style="margin:6px 2px 0">El total es la diferencia neta (disponible − necesario); un producto que sobra no reemplaza a otro que falta.</p>`;
+  const vB=lineV(d.B);
+  $('#merch').innerHTML=`<div class="scen"><div>
+      <p class="mini">El inventario se monitorea para que todas las fechas de la activación queden cubiertas. En la ruleta se promueven los artículos que van quedando con mayor inventario.</p>
+      <div class="verdict ${vB.cls}">${vB.t}</div>${scTbl(d.B)}${recoHtml(D,ps,d)}</div></div>`;
   /* Detalle: solo la ciudad elegida */
   const done=d.list.filter(s=>S.reps[s.id]);
   const tot={};ps.forEach(p=>tot[p.id]=0);let tvent=0,tunid=0;
