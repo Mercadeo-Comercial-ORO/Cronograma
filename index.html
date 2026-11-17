@@ -87,14 +87,14 @@ button,input,select{font:inherit;color:inherit}
 
 /* agenda */
 .day{margin-top:18px}
-.dayh{display:flex;align-items:baseline;gap:10px;padding-bottom:6px;border-bottom:2px solid var(--fg)}
+.dayh{display:flex;align-items:baseline;gap:10px;padding:10px 0 6px;border-bottom:2px solid var(--fg);position:sticky;top:0;background:var(--bg);z-index:3}
 .dayh h3{font-size:18px;font-weight:800}
 .dayh .rel{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
 .dayh .cnt{margin-left:auto;color:var(--muted);font-size:13px}
-.ev{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;padding:12px 2px;border-bottom:1px solid var(--line);align-items:start}
-.ev .t{font-family:var(--f-mono);font-size:14px;font-weight:500;padding-top:2px}
+.ev{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:4px 16px;padding:14px 16px;margin-top:10px;background:var(--surface);border:1px solid var(--line);border-left:5px solid hsl(var(--h,25) 70% 52%);border-radius:12px;align-items:start}
+.ev .t{font-family:var(--f-mono);font-size:17px;font-weight:600;padding-top:1px;line-height:1.2}
 .ev .t small{display:block;color:var(--muted);font-size:12px}
-.ev .cl{font-weight:600;font-size:16px}
+.ev .cl{font-weight:800;font-size:17px;font-family:var(--f-display);line-height:1.25}
 .ev .ac{color:var(--muted);font-size:14px}
 .ev .lug{font-size:14px;margin-top:3px}.ev .lug a{color:inherit;font-weight:600;white-space:nowrap}
 .ev .exe{font-size:13px;margin-top:3px;color:var(--fg)}
@@ -102,12 +102,31 @@ button,input,select{font:inherit;color:inherit}
 .lbl .x{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev .nt{grid-column:2/-1;font-size:13px;background:var(--surface-2);border-radius:8px;padding:6px 9px;margin-top:4px;white-space:pre-line}
 .ev .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.ev.clash{background:linear-gradient(90deg,var(--clash-bg),transparent 70%);border-left:3px solid var(--clash);padding-left:8px}
+.ev.clash{background:linear-gradient(90deg,var(--clash-bg),var(--surface) 70%);border-left-color:var(--clash)}
 .warn{color:var(--clash);font-size:12px;font-weight:600;grid-column:2/-1}
 .pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
 .pill.prog{background:var(--prog-bg);color:var(--prog)}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}
-.ctag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.ctag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:hsl(var(--h,25) 60% 38%);background:hsl(var(--h,25) 80% 92%);border-radius:5px;padding:1px 7px;margin-bottom:3px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ctag{color:hsl(var(--h,25) 80% 78%);background:hsl(var(--h,25) 40% 22%)}}
+.filt{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.filt select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;max-width:100%}
+.dg{margin-top:8px;border:1px solid rgba(47,127,209,.4);border-radius:8px;background:var(--prog-bg);padding:6px 10px;font-size:13px}
+.dg summary{cursor:pointer;font-weight:700;color:var(--prog)}
+.dg ul,.act ul{margin:6px 0 4px;padding-left:18px}.dg li,.act li{margin:3px 0}
+.cv{display:inline-block;background:var(--prog);color:#fff!important;text-decoration:none;font-weight:700;font-size:13px;border-radius:8px;padding:7px 12px;white-space:nowrap}
+.acts{display:grid;gap:14px;margin-top:16px}
+.act{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.act header{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.act h3{font-size:21px;font-weight:800}
+.act h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-family:var(--f-body)}
+.act .dgl{background:var(--prog-bg);border-radius:10px;padding:10px 14px}
+.act .dgl .none{margin:6px 0 0;color:var(--muted);font-size:14px}
+.act .cr{border-top:1px solid var(--line);padding-top:10px}
+.act .cr .top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dates{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.dt{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:4px 9px;font-size:13px;font-weight:600}
+.dt small{display:block;font-weight:400;color:var(--muted);font-family:var(--f-mono);font-size:11px}
 .dtag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#2f7fd1;border:1px solid rgba(47,127,209,.45);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 .mini{background:var(--plate);border:1px solid var(--line);border-radius:6px;height:26px;padding:3px 5px;display:inline-flex;align-items:center}
 .mini img{height:18px;width:auto}
@@ -135,7 +154,7 @@ button,input,select{font:inherit;color:inherit}
 .bar.clash{background:var(--clash)}
 .foot{margin-top:30px;color:var(--muted);font-size:12px;text-align:center}
 @media (max-width:560px){
-  .ev{grid-template-columns:74px minmax(0,1fr)}
+  .ev{grid-template-columns:64px minmax(0,1fr);padding:12px}
   .ev .side{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start}
   .lbl{width:140px}
   .stations{width:100%}
@@ -174,11 +193,14 @@ button,input,select{font:inherit;color:inherit}
     <div class="chips" id="chips" hidden></div>
     <div class="kpis" id="kpis"></div>
     <div class="views" role="tablist">
+      <button class="tab" role="tab" id="t-act" aria-selected="false" hidden>Acciones digitales</button>
       <button class="tab" role="tab" id="t-agenda" aria-selected="true">Agenda</button>
       <button class="tab" role="tab" id="t-cal" aria-selected="false">Calendario</button>
       <select id="win" aria-label="Mes"></select>
     </div>
     <div class="legend"><span><i style="background:var(--prog)"></i>En ejecución</span><span><i style="background:var(--ok)"></i>Ejecutada</span><span><i style="background:var(--clash)"></i>Cruce de horario en la misma ciudad</span></div>
+    <div class="filt"><select id="cli" aria-label="Cliente"></select></div>
+    <section id="act" hidden></section>
     <section id="agenda"></section>
     <section id="cal" hidden></section>
   </main>
@@ -192,7 +214,31 @@ const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","di
 const DSEM=["dom","lun","mar","mié","jue","vie","sáb"];
 const DLARGO=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 const KEY="oro-cronograma-pw";
-let DATA=null, SES=null, curCity=null, view="agenda";
+let DATA=null, SES=null, curCity=null, view="agenda", curCli="";
+const hue=c=>{ let h=0; for(const ch of c) h=(h*31+ch.charCodeAt(0))%360; return h; };
+const digBox=it=>{ if(SES.tipo!=="digital") return ""; const l=it.dig||[];
+  return `<details class="dg"><summary>Acciones digitales${l.length?" · "+l.length:""}</summary>${l.length?`<ul>${l.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<p class="upd">Aún no hay detalle digital cargado en el tablero.</p>'}${it.canva?`<a class="cv" href="${esc(it.canva)}" target="_blank" rel="noopener">Abrir propuesta en Canva ↗</a>`:""}</details>`; };
+function fillClientes(){
+  const m=citiesMap(), cs=curCity==="__todas"?Object.keys(m):[curCity], set=new Set();
+  cs.forEach(c=>(m[c]||[]).forEach(it=>set.add(it.cliente)));
+  if(!set.has(curCli)) curCli="";
+  const sel=$("#cli");
+  sel.innerHTML='<option value="">Todos los clientes</option>'+[...set].sort((a,b)=>a.localeCompare(b,"es")).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  sel.value=curCli;
+}
+function renderAct(){
+  const hoy=todayStr(), m=citiesMap(), cs=curCity==="__todas"?Object.keys(m):[curCity], acts=new Map();
+  cs.forEach(c=>(m[c]||[]).forEach(it=>{ if(curCli&&it.cliente!==curCli) return; const sal=it.salidas.filter(s=>s.f>=hoy); if(!sal.length) return;
+    if(!acts.has(it.id)) acts.set(it.id,{it,por:[]}); acts.get(it.id).por.push({c,sal}); }));
+  const list=[...acts.values()].sort((a,b)=>a.por[0].sal[0].f.localeCompare(b.por[0].sal[0].f)||a.it.cliente.localeCompare(b.it.cliente,"es"));
+  if(!list.length){ $("#act").innerHTML='<p class="empty">No hay actividades digitales próximas.</p>'; return; }
+  $("#act").innerHTML=`<div class="acts">`+list.map(({it,por})=>`<article class="act">
+    <header><div><h3>${esc(it.cliente)}</h3><div class="ac" style="color:var(--muted)">${esc(it.nombre)}</div></div>${it.canva?`<a class="cv" href="${esc(it.canva)}" target="_blank" rel="noopener">Abrir propuesta en Canva ↗</a>`:""}</header>
+    <div class="dgl"><h4>Acciones digitales a realizar</h4>${(it.dig||[]).length?`<ul>${it.dig.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<p class="none">Aún no hay detalle digital cargado en el tablero. Revisa la propuesta en Canva.</p>'}</div>
+    ${por.sort((a,b)=>a.c.localeCompare(b.c,"es")).map(p=>`<div class="cr"><div class="top"><span class="ctag" style="--h:${hue(p.c)}">${esc(p.c)}</span><span class="upd">${p.sal.length} salida${p.sal.length===1?"":"s"} · ${esc(fcorta(p.sal[0].f))} → ${esc(fcorta(p.sal[p.sal.length-1].f))}</span></div>
+      <div class="dates">${p.sal.slice(0,10).map(s=>`<span class="dt">${esc(fcorta(s.f))}<small>${esc(hr(s))}</small></span>`).join("")}${p.sal.length>10?`<span class="dt">+${p.sal.length-10} más</span>`:""}</div></div>`).join("")}
+    <div class="exe"><b>${exLbl(it)}:</b> ${esc(exTxt(it))}</div></article>`).join("")+`</div>`;
+}
 
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g,"").toLowerCase();
 const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
@@ -251,12 +297,12 @@ function events(){
   const ev=[];
   cities.forEach(c=>(m[c]||[]).forEach(it=>it.salidas.forEach((s,j)=>{ if(s.f>=desde && s.f<=fin) ev.push({c,it,s,j,clash:false}); })));
   const by={}; ev.forEach(e=>{ const k=e.c+"|"+e.s.f; (by[k]=by[k]||[]).push(e); });
-  Object.values(by).forEach(list=>{ for(let i=0;i<list.length;i++) for(let k=i+1;k<list.length;k++){
+  if(SES.tipo!=="digital") Object.values(by).forEach(list=>{ for(let i=0;i<list.length;i++) for(let k=i+1;k<list.length;k++){
     const A=list[i],B=list[k]; if(A.it.id===B.it.id) continue;
     const as=A.s.a||"00:00", ae=A.s.b||"23:59", bs=B.s.a||"00:00", be=B.s.b||"23:59";
     if(as<be && bs<ae){ A.clash=true; B.clash=true; (A.w=A.w||[]).push(B.it.cliente); (B.w=B.w||[]).push(A.it.cliente); } } });
   ev.sort((x,y)=> x.s.f.localeCompare(y.s.f) || (x.s.a||"").localeCompare(y.s.a||"") || x.c.localeCompare(y.c,"es"));
-  return {ev,hoy,desde,fin,cities};
+  return {ev:curCli?ev.filter(e=>e.it.cliente===curCli):ev,hoy,desde,fin,cities};
 }
 function renderChips(){
   if(!SES.ciudades){ $("#chips").hidden=true; return; }
@@ -273,7 +319,7 @@ function renderKPIs(E){
   $("#kpis").innerHTML=`
     <div class="kpi"><div class="l">Salidas · ${esc(lbl)}</div><div class="v num">${ev.length}</div><div class="s">${acts.size} actividad${acts.size===1?"":"es"}</div></div>
     <div class="kpi"><div class="l">Próxima salida</div><div class="v" style="font-size:20px">${nx?esc(fcorta(nx.s.f))+` <span class="num" style="font-size:15px">${esc(hr(nx.s))}</span>`:"—"}</div><div class="s">${nx?esc(nx.it.cliente)+(curCity==="__todas"?" · "+esc(nx.c):"")+" · "+esc(exTxt(nx.it)):"Sin salidas programadas"}</div></div>
-    <div class="kpi ${cl?"alert":""}"><div class="l">Cruces de horario</div><div class="v num">${cl}</div><div class="s">${cl?"Revisa las salidas marcadas en rojo":"Sin cruces en el periodo"}</div></div>`;
+    ${SES.tipo==="digital"?`<div class="kpi"><div class="l">Ciudades con actividad</div><div class="v num">${new Set(ev.map(e=>e.c)).size}</div><div class="s">${esc([...new Set(ev.map(e=>e.c))].join(", ")||"—")}</div></div>`:`<div class="kpi ${cl?"alert":""}"><div class="l">Cruces de horario</div><div class="v num">${cl}</div><div class="s">${cl?"Revisa las salidas marcadas en rojo":"Sin cruces en el periodo"}</div></div>`}`;
 }
 function renderAgenda(E){
   const {ev,hoy}=E;
@@ -282,9 +328,9 @@ function renderAgenda(E){
   $("#agenda").innerHTML=days.map(d=>{
     const list=ev.filter(e=>e.s.f===d), rel=d===hoy?"Hoy":d===addDays(hoy,1)?"Mañana":"";
     return `<div class="day"><div class="dayh">${rel?`<span class="rel">${rel}</span>`:""}<h3>${esc(flarga(d))}</h3><span class="cnt">${list.length} salida${list.length===1?"":"s"}</span></div>
-      ${list.map(e=>`<div class="ev ${e.clash?"clash":""}">
+      ${list.map(e=>`<div class="ev ${e.clash?"clash":""}" style="--h:${hue(e.c)}">
         <div class="t">${esc(e.s.a||"Todo el día")}${e.s.b?`<small>a ${esc(e.s.b)}</small>`:""}</div>
-        <div>${curCity==="__todas"?`<div class="ctag">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div>${lugar(e)}<div class="exe"><b>${exLbl(e.it)}:</b> ${esc(exTxt(e.it))}</div></div>
+        <div>${curCity==="__todas"?`<div class="ctag" style="--h:${hue(e.c)}">${esc(e.c)}</div>`:""}<div class="cl">${esc(e.it.cliente)}${e.it.digital&&SES.tipo!=="digital"?'<span class="dtag">Digital</span>':""}</div><div class="ac">${esc(e.it.nombre)} · salida ${e.j+1} de ${e.it.salidas.length}</div>${lugar(e)}<div class="exe"><b>${exLbl(e.it)}:</b> ${esc(exTxt(e.it))}</div>${digBox(e.it)}</div>
         <div class="side">${mini(e.it.emisora)}${pill(e.it.estado)}</div>
         ${e.clash?`<div class="warn">⚠ Se cruza en horario con ${esc([...new Set(e.w)].join(", "))}</div>`:""}
         ${e.it.notas?`<div class="nt"><b>Notas:</b> ${esc(e.it.notas)}</div>`:""}
@@ -314,13 +360,16 @@ function renderCal(E){
 function render(){
   const E=events();
   $("#cityname").textContent = (SES.tipo==="digital"?"Equipo Digital · ":"") + (curCity==="__todas" ? "Todas las ciudades" : curCity);
-  renderChips(); renderKPIs(E);
-  $("#agenda").hidden = view!=="agenda"; $("#cal").hidden = view!=="cal";
-  $("#t-agenda").setAttribute("aria-selected",view==="agenda"); $("#t-cal").setAttribute("aria-selected",view==="cal");
-  view==="agenda" ? renderAgenda(E) : renderCal(E);
+  fillClientes(); const E2=events();
+  renderChips(); renderKPIs(E2);
+  $("#agenda").hidden = view!=="agenda"; $("#cal").hidden = view!=="cal"; $("#act").hidden = view!=="act";
+  $("#win").hidden = view==="act";
+  ["agenda","cal","act"].forEach(v=>$("#t-"+v).setAttribute("aria-selected",view===v));
+  view==="agenda" ? renderAgenda(E2) : view==="cal" ? renderCal(E2) : renderAct();
 }
 function enter(ses){
-  SES=ses; curCity = ses.ciudades ? "__todas" : ses.ciudad;
+  SES=ses; curCity = ses.ciudades ? "__todas" : ses.ciudad; curCli="";
+  $("#t-act").hidden = ses.tipo!=="digital"; view = ses.tipo==="digital" ? "act" : "agenda";
   $("#upd").textContent=fupd(DATA.actualizado);
   $("#login").hidden=true; $("#app").hidden=false; fillMeses(); $("#win").value=$("#win").options[0]?.value||""; render();
 }
@@ -339,6 +388,8 @@ $("#login").addEventListener("submit",async ev=>{
 $("#logout").addEventListener("click",()=>{ try{localStorage.removeItem(KEY);}catch(e){} SES=null; $("#pw").value=""; $("#app").hidden=true; $("#login").hidden=false; $("#pw").focus(); });
 $("#chips").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(b){ curCity=b.dataset.c; render(); } });
 $("#t-agenda").addEventListener("click",()=>{ view="agenda"; render(); });
+$("#t-act").addEventListener("click",()=>{ view="act"; render(); });
+$("#cli").addEventListener("change",e=>{ curCli=e.target.value; render(); });
 $("#t-cal").addEventListener("click",()=>{ view="cal"; render(); });
 $("#win").addEventListener("change",render);
 (async()=>{ let pw=null; try{ pw=localStorage.getItem(KEY); }catch(e){}

@@ -84,7 +84,8 @@ def main():
         return e.get("ov") if isinstance(e.get("ov"), dict) else {}
     base = [{"id": p["id"], "cliente": _ov(p["id"]).get("cliente") or p.get("cliente", ""),
              "nombre": _ov(p["id"]).get("nombre", p.get("nombre", "")),
-             "emisora": p.get("emisora", "Olímpica"), "manual": False}
+             "emisora": p.get("emisora", "Olímpica"), "manual": False,
+             "canva": "https://www.canva.com/design/%s/view" % (p.get("canvaId") or p["id"])}
             for p in p0 if not (estado.get(p["id"]) or {}).get("eliminada")]
     for mid, m in manuales.items():
         base.append({"id": mid, "cliente": m.get("cliente") or "Sin cliente", "nombre": m.get("nombre", ""), "emisora": m.get("emisora") or "Olímpica", "manual": True})
@@ -110,6 +111,8 @@ def main():
                 "id": p["id"], "cliente": p["cliente"], "nombre": p["nombre"], "emisora": emisora,
                 "estado": st, "notas": (e.get("notasEjecucion") or "").strip(), "salidas": sal,
                 "digital": bool(e.get("incluyeDigital")) and x.get("digital") is not False,
+                "dig": [l.strip() for l in ((e.get("incluye") or {}).get("digital") or "").split("\n") if l.strip()],
+                "canva": p.get("canva", ""),
                 "ejecutivos": [n for n in (ex_nombre(i) for i in (e.get("ejecutivos") or [])) if n],
             })
     if a.kimby:
@@ -176,11 +179,14 @@ def main():
     actualizado = now.strftime("%Y-%m-%dT%H:%M:%S-05:00")
     llaves = {}
     ciudades_cl = claves.get("ciudades", {})
+    # El detalle digital y el enlace a Canva solo viajan en la vista del equipo digital
+    pub = lambda it: {k: v for k, v in it.items() if k not in ("dig", "canva")}
+    pub_ciudades = {c: [pub(i) for i in v] for c, v in por_ciudad.items()}
     for ciudad, pw in ciudades_cl.items():
-        llaves[key_id(pw)] = encrypt({"tipo": "ciudad", "ciudad": ciudad, "items": por_ciudad.get(ciudad, [])}, pw)
-    llaves[key_id(claves["maestra"])] = encrypt({"tipo": "maestra", "ciudades": por_ciudad}, claves["maestra"])
+        llaves[key_id(pw)] = encrypt({"tipo": "ciudad", "ciudad": ciudad, "items": pub_ciudades.get(ciudad, [])}, pw)
+    llaves[key_id(claves["maestra"])] = encrypt({"tipo": "maestra", "ciudades": pub_ciudades}, claves["maestra"])
     # Equipo digital: todas las ciudades, solo actividades en ejecución marcadas con actividades digitales
-    digital = {c: [i for i in v if i["estado"] == "en_ejecucion" and i["digital"]] for c, v in por_ciudad.items()}
+    digital = {c: [i for i in v if i["estado"] == "en_ejecucion" and (i["digital"] or i.get("dig"))] for c, v in por_ciudad.items()}
     digital = {c: v for c, v in digital.items() if v}
     if claves.get("digital"):
         llaves[key_id(claves["digital"])] = encrypt({"tipo": "digital", "ciudades": digital}, claves["digital"])
