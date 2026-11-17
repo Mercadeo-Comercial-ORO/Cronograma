@@ -111,7 +111,7 @@ def main():
                 "id": p["id"], "cliente": p["cliente"], "nombre": p["nombre"], "emisora": emisora,
                 "estado": st, "notas": (e.get("notasEjecucion") or "").strip(), "salidas": sal,
                 "digital": bool(e.get("incluyeDigital")) and x.get("digital") is not False,
-                "dig": [l.strip() for l in ((e.get("incluye") or {}).get("digital") or "").split("\n") if l.strip()],
+                "dig": [l.strip() for l in (((x.get("incluye") or e.get("incluye") or {}).get("digital")) or "").split("\n") if l.strip()],
                 "canva": p.get("canva", ""),
                 "ejecutivos": [n for n in (ex_nombre(i) for i in (e.get("ejecutivos") or [])) if n],
             })
